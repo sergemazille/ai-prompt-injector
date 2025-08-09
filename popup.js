@@ -129,7 +129,7 @@ class PromptManager {
     } else {
       // Hide drop zone  
       dropZone.classList.add('hidden');
-      promptList.style.display = 'block';
+      promptList.style.display = '';  // Reset to use CSS default (grid)
       document.getElementById('import-btn').textContent = 'Import';
     }
   }
