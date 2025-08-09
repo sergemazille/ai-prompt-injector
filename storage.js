@@ -8,6 +8,12 @@ class PromptStorage {
     return 'prompt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
+  extractTimestampFromId(id) {
+    // Extract timestamp from ID format: "prompt_TIMESTAMP_random"
+    const match = id && id.match && id.match(/^prompt_(\d+)_/);
+    return match ? parseInt(match[1]) : Date.now();
+  }
+
   async getPrompts() {
   try {
     const result = await browser.storage.local.get(this.storageKey);
@@ -24,16 +30,21 @@ class PromptStorage {
       return [];
     }
     
-    // Ensure all prompts have favorite property (backward compatibility)
+    // Ensure all prompts have favorite and createdAt properties (backward compatibility)
     prompts = prompts.map(prompt => ({
       ...prompt,
-      favorite: prompt.favorite === true // Ensure it's a boolean, default to false
+      favorite: prompt.favorite === true, // Ensure it's a boolean, default to false
+      createdAt: prompt.createdAt || this.extractTimestampFromId(prompt.id) // Extract from ID if missing
     }));
     
-    // Sort favorites first
+    // Sort by favorites first, then by creation date (newest first)
     prompts.sort((a, b) => {
-      if (a.favorite === b.favorite) return 0;
-      return a.favorite ? -1 : 1;
+      // Primary sort: favorites first
+      if (a.favorite !== b.favorite) {
+        return a.favorite ? -1 : 1;
+      }
+      // Secondary sort: newest first within same favorite status
+      return (b.createdAt || 0) - (a.createdAt || 0);
     });
     
     return prompts;
@@ -59,12 +70,14 @@ class PromptStorage {
         tags = [];
       }
     }
+    const currentTime = Date.now();
     const normalized = {
       id: prompt.id || this.generateId(),
       label,
       template,
       tags,
-      favorite: prompt.favorite === true // Ensure it's a boolean, default to false
+      favorite: prompt.favorite === true, // Ensure it's a boolean, default to false
+      createdAt: prompt.createdAt || (prompt.id ? this.extractTimestampFromId(prompt.id) : currentTime)
     };
     if (!prompt.id) {
       prompts.push(normalized);
@@ -104,17 +117,37 @@ class PromptStorage {
 
   async toggleFavorite(promptId) {
     try {
-      const prompts = await this.getPrompts();
+      // Get raw data (unsorted) to avoid affecting storage order
+      const result = await browser.storage.local.get(this.storageKey);
+      let prompts = result[this.storageKey] || [];
+      
+      // Ensure it's an array (backward compatibility)
+      if (!Array.isArray(prompts)) {
+        if (prompts && typeof prompts === 'object' && Array.isArray(prompts.prompts)) {
+          prompts = prompts.prompts;
+        } else {
+          prompts = [];
+        }
+      }
+      
       const promptIndex = prompts.findIndex(p => p.id === promptId);
       
       if (promptIndex === -1) {
         throw new Error('Prompt not found');
       }
       
-      prompts[promptIndex].favorite = !prompts[promptIndex].favorite;
+      const oldStatus = prompts[promptIndex].favorite === true;
+      prompts[promptIndex].favorite = !oldStatus;
+      const newStatus = prompts[promptIndex].favorite;
+      
+      // Ensure createdAt exists for consistency
+      if (!prompts[promptIndex].createdAt) {
+        prompts[promptIndex].createdAt = this.extractTimestampFromId(prompts[promptIndex].id);
+      }
+      
       await browser.storage.local.set({ [this.storageKey]: prompts });
       
-      return prompts[promptIndex].favorite;
+      return newStatus;
     } catch (error) {
       console.error('Error toggling favorite:', error);
       throw error;
@@ -143,7 +176,7 @@ class PromptStorage {
     try {
       const prompts = await this.getPrompts();
       const data = {
-        version: '1.0',
+        version: '1.1',
         exported: new Date().toISOString(),
         prompts: prompts
       };
@@ -193,12 +226,26 @@ class PromptStorage {
       if (existingTitles.has(key)) continue;
 
       const favoriteValue = pick(raw, ['favorite', 'starred', 'pinned']);
+      const timestampValue = pick(raw, ['createdAt', 'created_at', 'timestamp', 'date', 'created', 'dateCreated']);
+      
+      // Parse timestamp if it exists, otherwise use current time
+      let createdAt = Date.now();
+      if (timestampValue) {
+        if (typeof timestampValue === 'number') {
+          createdAt = timestampValue;
+        } else if (typeof timestampValue === 'string') {
+          const parsed = new Date(timestampValue).getTime();
+          if (!isNaN(parsed)) createdAt = parsed;
+        }
+      }
+      
       existingPrompts.push({
         id: this.generateId(),
         label: cleanLabel,
         template: cleanTemplate,
         tags,
-        favorite: favoriteValue === true || favoriteValue === 'true' || favoriteValue === 1
+        favorite: favoriteValue === true || favoriteValue === 'true' || favoriteValue === 1,
+        createdAt: createdAt
       });
       existingTitles.add(key);
       imported++;

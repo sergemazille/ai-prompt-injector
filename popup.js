@@ -701,14 +701,23 @@ class PromptManager {
 
   async toggleFavorite(promptId) {
     try {
+      // Get prompt info before toggling for better notification
+      const prompt = await promptStorage.getPromptById(promptId);
+      const wasInitiallyFavorite = prompt.favorite;
+      
       const newFavoriteStatus = await promptStorage.toggleFavorite(promptId);
       console.log('Favorite toggled:', promptId, 'New status:', newFavoriteStatus);
       
       // Reload prompts to reflect the new sorting order
       await this.loadPrompts();
       
-      // Show a brief notification
-      const message = newFavoriteStatus ? 'Added to favorites' : 'Removed from favorites';
+      // Show a more informative notification
+      let message;
+      if (newFavoriteStatus) {
+        message = '★ Added to favorites (moved to top)';
+      } else {
+        message = '☆ Removed from favorites (repositioned by date)';
+      }
       this.showNotification(message);
     } catch (error) {
       console.error('Error toggling favorite:', error);
