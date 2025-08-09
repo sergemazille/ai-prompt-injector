@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Prompt Library",
+  "version": "1.0.0",
+  "description": "Manage and insert prompts into AI chat interfaces",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "clipboardWrite",
+    "clipboardRead"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Prompt Library"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "myprompts@example.com",
+      "strict_min_version": "128.0"
+    }
+  }
+}
