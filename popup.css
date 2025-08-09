@@ -212,6 +212,10 @@ h1 {
 
 .prompt-header {
   margin-bottom: 6px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
 .prompt-title {
@@ -221,6 +225,34 @@ h1 {
   line-height: 1.4;
   word-break: break-word;
   color: #24292f;
+  flex: 1;
+  padding-right: 8px;
+}
+
+.favorite-star {
+  font-size: 16px;
+  cursor: pointer;
+  color: #d0d7de;
+  transition: all 0.2s ease;
+  user-select: none;
+  padding: 2px;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.favorite-star:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  transform: scale(1.1);
+}
+
+.favorite-star.favorited {
+  color: #f59e0b;
+}
+
+.favorite-star.favorited:hover {
+  color: #d97706;
 }
 
 .prompt-actions {

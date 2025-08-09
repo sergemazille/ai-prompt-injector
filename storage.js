@@ -12,15 +12,31 @@ class PromptStorage {
   try {
     const result = await browser.storage.local.get(this.storageKey);
     const raw = result[this.storageKey];
-    if (Array.isArray(raw)) return raw;
-    if (raw && typeof raw === 'object' && Array.isArray(raw.prompts)) {
-      await browser.storage.local.set({ [this.storageKey]: raw.prompts });
-      return raw.prompts;
-    }
-    if (raw !== undefined) {
+    let prompts = [];
+    
+    if (Array.isArray(raw)) {
+      prompts = raw;
+    } else if (raw && typeof raw === 'object' && Array.isArray(raw.prompts)) {
+      prompts = raw.prompts;
+      await browser.storage.local.set({ [this.storageKey]: prompts });
+    } else if (raw !== undefined) {
       await browser.storage.local.set({ [this.storageKey]: [] });
+      return [];
     }
-    return [];
+    
+    // Ensure all prompts have favorite property (backward compatibility)
+    prompts = prompts.map(prompt => ({
+      ...prompt,
+      favorite: prompt.favorite === true // Ensure it's a boolean, default to false
+    }));
+    
+    // Sort favorites first
+    prompts.sort((a, b) => {
+      if (a.favorite === b.favorite) return 0;
+      return a.favorite ? -1 : 1;
+    });
+    
+    return prompts;
   } catch (error) {
     console.error('Error getting prompts:', error);
     return [];
@@ -47,7 +63,8 @@ class PromptStorage {
       id: prompt.id || this.generateId(),
       label,
       template,
-      tags
+      tags,
+      favorite: prompt.favorite === true // Ensure it's a boolean, default to false
     };
     if (!prompt.id) {
       prompts.push(normalized);
@@ -82,6 +99,25 @@ class PromptStorage {
     } catch (error) {
       console.error('Error getting prompt by ID:', error);
       return null;
+    }
+  }
+
+  async toggleFavorite(promptId) {
+    try {
+      const prompts = await this.getPrompts();
+      const promptIndex = prompts.findIndex(p => p.id === promptId);
+      
+      if (promptIndex === -1) {
+        throw new Error('Prompt not found');
+      }
+      
+      prompts[promptIndex].favorite = !prompts[promptIndex].favorite;
+      await browser.storage.local.set({ [this.storageKey]: prompts });
+      
+      return prompts[promptIndex].favorite;
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      throw error;
     }
   }
 
@@ -156,11 +192,13 @@ class PromptStorage {
       const key = cleanLabel.toLowerCase();
       if (existingTitles.has(key)) continue;
 
+      const favoriteValue = pick(raw, ['favorite', 'starred', 'pinned']);
       existingPrompts.push({
         id: this.generateId(),
         label: cleanLabel,
         template: cleanTemplate,
-        tags
+        tags,
+        favorite: favoriteValue === true || favoriteValue === 'true' || favoriteValue === 1
       });
       existingTitles.add(key);
       imported++;

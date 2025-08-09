@@ -368,10 +368,14 @@ class PromptManager {
       ? prompt.tags.map(tag => `<span class="tag" data-tag="${tag}">${tag}</span>`).join('')
       : '';
 
+    const starIcon = prompt.favorite ? '★' : '☆';
+    const starClass = prompt.favorite ? 'favorite-star favorited' : 'favorite-star';
+
     return `
       <div class="prompt-item" data-id="${prompt.id}">
         <div class="prompt-header">
           <h3 class="prompt-title">${this.escapeHtml(prompt.label)}</h3>
+          <span class="${starClass}" data-id="${prompt.id}" title="${prompt.favorite ? 'Remove from favorites' : 'Add to favorites'}">${starIcon}</span>
         </div>
         <div class="prompt-tags">${tagsHtml}</div>
         <div class="prompt-actions">
@@ -694,6 +698,23 @@ class PromptManager {
       alert('Error deleting prompt. Please try again.');
     }
   }
+
+  async toggleFavorite(promptId) {
+    try {
+      const newFavoriteStatus = await promptStorage.toggleFavorite(promptId);
+      console.log('Favorite toggled:', promptId, 'New status:', newFavoriteStatus);
+      
+      // Reload prompts to reflect the new sorting order
+      await this.loadPrompts();
+      
+      // Show a brief notification
+      const message = newFavoriteStatus ? 'Added to favorites' : 'Removed from favorites';
+      this.showNotification(message);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      this.showNotification('Error updating favorite status');
+    }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -712,13 +733,19 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.target.classList.contains('delete-btn')) {
       const promptId = e.target.dataset.id;
       await manager.deletePrompt(promptId);
+    } else if (e.target.classList.contains('favorite-star')) {
+      e.stopPropagation(); // Prevent triggering prompt insertion
+      const promptId = e.target.dataset.id;
+      await manager.toggleFavorite(promptId);
     } else if (e.target.classList.contains('tag')) {
       const tag = e.target.dataset.tag;
       document.getElementById('tag-filter').value = tag;
       await manager.filterPrompts(tag);
     } else if (e.target.classList.contains('prompt-item') || e.target.closest('.prompt-item')) {
-      // Ignore clicks on buttons and tags - they have their own handlers
-      if (e.target.closest('.prompt-actions') || e.target.classList.contains('tag')) {
+      // Ignore clicks on buttons, tags, and stars - they have their own handlers
+      if (e.target.closest('.prompt-actions') || 
+          e.target.classList.contains('tag') || 
+          e.target.classList.contains('favorite-star')) {
         return;
       }
       
