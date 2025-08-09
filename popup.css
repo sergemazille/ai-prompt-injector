@@ -27,12 +27,28 @@ header {
   padding: 16px;
   border-bottom: 1px solid #e1e5e9;
   background: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
 }
 
 h1 {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin: 0;
+}
+
+.header-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .header-actions {
