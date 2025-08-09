@@ -26,7 +26,6 @@ class PromptManager {
       'browse-btn': () => this.importPrompts(),
       'paste-from-clipboard': () => this.pasteFromClipboard(),
       'import-from-paste': () => this.importFromPaste(),
-      'debug-btn': () => this.debugInsertion()
     };
     
     for (const [id, handler] of Object.entries(elements)) {
@@ -622,52 +621,6 @@ class PromptManager {
     }
   }
 
-  async debugInsertion() {
-    try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-      if (tabs.length === 0) {
-        alert('No active tab found');
-        return;
-      }
-
-      const tabId = tabs[0].id;
-      const url = tabs[0].url;
-
-      console.log('Debug - Active tab:', { tabId, url });
-
-      try {
-        const response = await browser.tabs.sendMessage(tabId, {
-          action: 'checkTarget'
-        });
-
-        console.log('Debug - Target check response:', response);
-
-        let debugInfo = `Debug Information:\n\n`;
-        debugInfo += `Tab ID: ${tabId}\n`;
-        debugInfo += `URL: ${url}\n`;
-        debugInfo += `Content script loaded: ${response ? 'Yes' : 'No'}\n`;
-        
-        if (response) {
-          debugInfo += `Target found: ${response.hasTarget ? 'Yes' : 'No'}\n`;
-          if (response.targetInfo) {
-            debugInfo += `Target info:\n`;
-            debugInfo += `  Tag: ${response.targetInfo.tagName}\n`;
-            debugInfo += `  Type: ${response.targetInfo.type}\n`;
-            debugInfo += `  ContentEditable: ${response.targetInfo.isContentEditable}\n`;
-            debugInfo += `  Placeholder: ${response.targetInfo.placeholder}\n`;
-          }
-        }
-
-        alert(debugInfo);
-      } catch (error) {
-        console.error('Debug - Message sending failed:', error);
-        alert(`Debug failed: Content script not responding.\nError: ${error.message}\n\nTry refreshing the page and make sure you're on a supported website.`);
-      }
-    } catch (error) {
-      console.error('Debug error:', error);
-      alert('Debug error: ' + error.message);
-    }
-  }
 
   async copyPromptToClipboard(promptId) {
     try {
