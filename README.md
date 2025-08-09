@@ -1,77 +1,77 @@
 # Prompt Library - Firefox Extension
 
-Une extension Firefox minimaliste pour gérer et insérer des prompts dans les interfaces de chat IA.
+A minimalist Firefox extension to manage and insert prompts into AI chat interfaces.
 
-## Fonctionnalités
+## Features
 
-- **Gestion de prompts** : Créer, modifier, supprimer et organiser vos prompts
-- **Tags** : Organiser vos prompts avec des tags et filtrer par tag
-- **Insertion universelle** : Insérer automatiquement dans ChatGPT, Claude, Gemini, Mistral, Grok, Perplexity, DeepSeek et autres
-- **Import/Export** : Sauvegarder et partager votre collection de prompts en JSON
-- **Fallback clipboard** : Copie automatique si l'insertion DOM échoue
+- **Prompt Management**: Create, edit, delete and organize your prompts
+- **Tags**: Organize your prompts with tags and filter by tag
+- **Universal Insertion**: Automatically insert into ChatGPT, Claude, Gemini, Mistral, Grok, Perplexity, DeepSeek and others
+- **Import/Export**: Save and share your prompt collection in JSON format
+- **Clipboard Fallback**: Automatic copy if DOM insertion fails
 
 ## Installation
 
-### Installation manuelle (développement)
+### Manual Installation (Development)
 
-1. Clonez ou téléchargez ce projet
-2. Ouvrez Firefox et allez à `about:debugging`
-3. Cliquez sur "Ce Firefox" dans le menu de gauche
-4. Cliquez sur "Charger un module complémentaire temporaire..."
-5. Sélectionnez le fichier `manifest.json` dans le dossier du projet
-6. L'extension apparaît dans la barre d'outils Firefox
+1. Clone or download this project
+2. Open Firefox and go to `about:debugging`
+3. Click "This Firefox" in the left menu
+4. Click "Load Temporary Add-on..."
+5. Select the `manifest.json` file in the project folder
+6. The extension appears in the Firefox toolbar
 
-**Important** : Après installation, rafraîchissez les pages web ouvertes pour que le content script soit chargé.
+**Important**: After installation, refresh open web pages for the content script to load.
 
-### Utilisation
+### Usage
 
-1. Cliquez sur l'icône "Prompt Library" dans la barre d'outils
-2. Créez vos premiers prompts avec "New Prompt"
-3. Organisez avec des tags (séparés par des virgules)
-4. Sur une page de chat IA, cliquez sur "Insert" pour insérer le prompt
-5. Utilisez le bouton "Debug" pour diagnostiquer les problèmes d'insertion
-6. Utilisez Import/Export pour sauvegarder votre collection
+1. Click the "Prompt Library" icon in the toolbar
+2. Create your first prompts with "New Prompt"
+3. Organize with tags (separated by commas)
+4. On an AI chat page, click "Insert" to insert the prompt
+5. Use the "Debug" button to diagnose insertion issues
+6. Use Import/Export to save your collection
 
-### Dépannage
+### Troubleshooting
 
-Si l'insertion ne fonctionne pas :
+If insertion doesn't work:
 
-1. **Rafraîchir la page** : Le content script doit être chargé
-2. **Utiliser le bouton "Debug"** : Vérifier si un champ d'entrée est détecté
-3. **Vérifier les permissions** : L'extension nécessite l'autorisation sur tous les sites
-4. **Consulter la console** : Ouvrir les outils développeur (F12) pour voir les erreurs
+1. **Refresh the page**: The content script must be loaded
+2. **Use the "Debug" button**: Check if an input field is detected
+3. **Check permissions**: The extension requires authorization on all sites
+4. **Check the console**: Open developer tools (F12) to see errors
 
-## Structure des fichiers
+## File Structure
 
 ```
-├── manifest.json          # Configuration de l'extension
-├── popup.html             # Interface utilisateur
+├── manifest.json          # Extension configuration
+├── popup.html             # User interface
 ├── popup.css              # Styles
-├── popup.js               # Logique de l'interface
-├── storage.js             # Gestion du stockage
-├── content.js             # Script d'injection dans les pages
-├── browser-polyfill.js    # Compatibilité API Firefox/Chrome
-├── background.js          # Script d'arrière-plan
+├── popup.js               # Interface logic
+├── storage.js             # Storage management
+├── content.js             # Page injection script
+├── browser-polyfill.js    # Firefox/Chrome API compatibility
+├── background.js          # Background script
 └── README.md              # Documentation
 ```
 
-## Format des données
+## Data Format
 
-Les prompts sont stockés au format JSON :
+Prompts are stored in JSON format:
 
 ```json
 {
   "id": "prompt_123456789_abc",
-  "label": "Titre du prompt",
-  "template": "Contenu du prompt",
+  "label": "Prompt title",
+  "template": "Prompt content",
   "tags": ["tag1", "tag2"]
 }
 ```
 
-## Compatibilité
+## Compatibility
 
 - Firefox MV3
-- Sites supportés par défaut :
+- Supported sites by default:
   - ChatGPT (chat.openai.com)
   - Claude (claude.ai)
   - Gemini (gemini.google.com)
@@ -79,17 +79,17 @@ Les prompts sont stockés au format JSON :
   - Grok (grok.x.ai)
   - Perplexity (www.perplexity.ai)
   - DeepSeek (chat.deepseek.com)
-  - Et tous autres sites avec textarea ou contenteditable
+  - And all other sites with textarea or contenteditable
 
 ## Permissions
 
-- `activeTab` : Accès à l'onglet actif pour l'insertion
-- `storage` : Stockage local des prompts
-- `scripting` : Injection de script pour l'insertion DOM
-- `clipboardWrite` : Copie de secours si insertion impossible
+- `activeTab`: Access to active tab for insertion
+- `storage`: Local storage of prompts
+- `scripting`: Script injection for DOM insertion
+- `clipboardWrite`: Backup copy if insertion impossible
 
-## Développement
+## Development
 
-L'extension utilise l'API WebExtensions standard, compatible Firefox MV3. Aucune dépendance externe requise.
+The extension uses the standard WebExtensions API, compatible with Firefox MV3. No external dependencies required.
 
-Pour modifier les sélecteurs DOM par site, éditez la méthode `getDefaultSelectors()` dans `storage.js`.
+To modify DOM selectors by site, edit the `getDefaultSelectors()` method in `storage.js`.
