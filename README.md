@@ -1,10 +1,12 @@
-# Prompt Library - Firefox Extension
+# Prompt Library - Browser Extension
 
-A minimalist Firefox extension to manage and insert prompts into AI chat interfaces.
+A minimalist browser extension to manage and insert prompts into AI chat interfaces.
 
 ## Features
 
 - **Prompt Management**: Create, edit, delete and organize your prompts
+- **Favorites System**: Mark important prompts as favorites for priority display
+- **Real-time Search**: Instantly search through your prompt collection
 - **Tags**: Organize your prompts with tags and filter by tag
 - **Universal Insertion**: Automatically insert into ChatGPT, Claude, Gemini, Mistral, Grok, Perplexity, DeepSeek and others
 - **Import/Export**: Save and share your prompt collection in JSON format
@@ -14,12 +16,21 @@ A minimalist Firefox extension to manage and insert prompts into AI chat interfa
 
 ### Manual Installation (Development)
 
+#### Firefox
 1. Clone or download this project
 2. Open Firefox and go to `about:debugging`
 3. Click "This Firefox" in the left menu
 4. Click "Load Temporary Add-on..."
 5. Select the `manifest.json` file in the project folder
 6. The extension appears in the Firefox toolbar
+
+#### Chrome/Chromium
+1. Clone or download this project
+2. Open Chrome and go to `chrome://extensions`
+3. Enable "Developer mode" (toggle in top right)
+4. Click "Load unpacked"
+5. Select the project folder
+6. The extension appears in the Chrome toolbar
 
 **Important**: After installation, refresh open web pages for the content script to load.
 
@@ -52,6 +63,11 @@ If insertion doesn't work:
 ├── content.js             # Page injection script
 ├── browser-polyfill.js    # Firefox/Chrome API compatibility
 ├── background.js          # Background script
+├── icons/                 # Extension icons
+│   ├── icon16.png         # 16x16 icon
+│   ├── icon48.png         # 48x48 icon
+│   └── icon128.png        # 128x128 icon
+├── CLAUDE.md              # Development instructions
 └── README.md              # Documentation
 ```
 
@@ -70,7 +86,7 @@ Prompts are stored in JSON format:
 
 ## Compatibility
 
-- Firefox MV3
+- Firefox MV3 and Chrome/Chromium MV3
 - Supported sites by default:
   - ChatGPT (chat.openai.com)
   - Claude (claude.ai)
@@ -79,6 +95,8 @@ Prompts are stored in JSON format:
   - Grok (grok.x.ai)
   - Perplexity (www.perplexity.ai)
   - DeepSeek (chat.deepseek.com)
+  - Poe (poe.com)
+  - LMSYS Chat (chat.lmsys.org)
   - And all other sites with textarea or contenteditable
 
 ## Permissions
@@ -87,9 +105,11 @@ Prompts are stored in JSON format:
 - `storage`: Local storage of prompts
 - `scripting`: Script injection for DOM insertion
 - `clipboardWrite`: Backup copy if insertion impossible
+- `clipboardRead`: Read clipboard content for import functionality
+- `host_permissions: ["<all_urls>"]`: Universal access for content script injection
 
 ## Development
 
-The extension uses the standard WebExtensions API, compatible with Firefox MV3. No external dependencies required.
+The extension uses the standard WebExtensions API, compatible with Firefox MV3 and Chrome MV3. No external dependencies required.
 
-To modify DOM selectors by site, edit the `getDefaultSelectors()` method in `storage.js`.
+To modify DOM selectors by site, edit the `domainSelectors` object in `content.js`.
