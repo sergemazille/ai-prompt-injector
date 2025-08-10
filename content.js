@@ -22,7 +22,8 @@ const PromptInjector = {
     'www.perplexity.ai': ['textarea', '[contenteditable="true"]'],
     'chat.deepseek.com': ['textarea', '[contenteditable="true"]'],
     'poe.com': ['textarea', '[contenteditable="true"]'],
-    'chat.lmsys.org': ['textarea', '[contenteditable="true"]']
+    'chat.lmsys.org': ['textarea', '[contenteditable="true"]'],
+    'dust.tt': ['.tiptap.ProseMirror[contenteditable="true"]', '[contenteditable="true"]']
   },
 
   findTarget() {
