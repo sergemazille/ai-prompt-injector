@@ -4,7 +4,7 @@ const PromptInjector = {
   selectors: [
     '#prompt-textarea',
     'textarea[placeholder*="message"]',
-    'textarea[placeholder*="question"]', 
+    'textarea[placeholder*="question"]',
     'textarea[placeholder*="prompt"]',
     'textarea[placeholder*="chat"]',
     '[contenteditable="true"]',
@@ -16,12 +16,27 @@ const PromptInjector = {
   domainSelectors: {
     'chat.openai.com': ['#prompt-textarea', '[contenteditable="true"]'],
     'gemini.google.com': ['[contenteditable="true"]', '[role="textbox"]'],
+    'bard.google.com': ['[contenteditable="true"]', '[role="textbox"]'],
     'claude.ai': ['[contenteditable="true"]', '[role="textbox"]'],
+    'copilot.microsoft.com': ['textarea', '[contenteditable="true"]', '[role="textbox"]'],
+    'www.perplexity.ai': ['textarea', '[contenteditable="true"]'],
+    'poe.com': ['textarea', '[contenteditable="true"]'],
+    'deepseek.com': ['textarea', '[contenteditable="true"]'],
+    'chat.deepseek.com': ['textarea', '[contenteditable="true"]'],
+    'kimi.moonshot.cn': ['textarea', '[contenteditable="true"]'],
+    'chatglm.cn': ['textarea', '[contenteditable="true"]'],
+    'chatglm.com': ['textarea', '[contenteditable="true"]'],
+    'qwen.chat': ['textarea', '[contenteditable="true"]'],
+    'chat.qwen.com': ['textarea', '[contenteditable="true"]'],
+    'yiyan.baidu.com': ['textarea', '[contenteditable="true"]'],
+    'tongyi.aliyun.com': ['textarea', '[contenteditable="true"]'],
+    'chat.anthropic.com': ['[contenteditable="true"]', '[role="textbox"]'],
+    'chat.you.com': ['textarea', '[contenteditable="true"]'],
+    'huggingface.co': ['textarea', '[contenteditable="true"]'],
+    'chat.character.ai': ['textarea', '[contenteditable="true"]'],
+    'chat.forefront.ai': ['textarea', '[contenteditable="true"]'],
     'chat.mistral.ai': ['textarea', '[contenteditable="true"]'],
     'grok.x.ai': ['textarea', '[contenteditable="true"]'],
-    'www.perplexity.ai': ['textarea', '[contenteditable="true"]'],
-    'chat.deepseek.com': ['textarea', '[contenteditable="true"]'],
-    'poe.com': ['textarea', '[contenteditable="true"]'],
     'chat.lmsys.org': ['textarea', '[contenteditable="true"]'],
     'dust.tt': ['.tiptap.ProseMirror[contenteditable="true"]', '[contenteditable="true"]']
   },
@@ -56,11 +71,11 @@ const PromptInjector = {
 
   isValidTarget(element) {
     if (!element) return false;
-    
+
     if (element.offsetWidth === 0 || element.offsetHeight === 0) {
       return false;
     }
-    
+
     if (element.disabled || element.readOnly) {
       return false;
     }
@@ -75,7 +90,7 @@ const PromptInjector = {
 
   async insertText(text) {
     console.log(`[${PROMPT_LIBRARY_NS}] Attempting to insert text:`, text.substring(0, 100) + '...');
-    
+
     const target = this.findTarget();
     if (!target) {
       throw new Error('No suitable input field found');
@@ -87,7 +102,7 @@ const PromptInjector = {
       } else {
         this.insertIntoInput(target, text);
       }
-      
+
       console.log(`[${PROMPT_LIBRARY_NS}] Text inserted successfully`);
       return true;
     } catch (error) {
@@ -98,7 +113,7 @@ const PromptInjector = {
 
   insertIntoContentEditable(element, text) {
     element.focus();
-    
+
     if (element.innerText || element.textContent) {
       element.innerText = text;
     } else {
@@ -154,10 +169,10 @@ const PromptInjector = {
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        
+
         const successful = document.execCommand('copy');
         document.body.removeChild(textArea);
-        
+
         if (successful) {
           console.log(`[${PROMPT_LIBRARY_NS}] Text copied to clipboard (fallback method)`);
           return true;
@@ -188,9 +203,9 @@ function showNotification(message, type = 'info') {
     word-wrap: break-word;
   `;
   notification.textContent = message;
-  
+
   document.body.appendChild(notification);
-  
+
   setTimeout(() => {
     if (notification.parentNode) {
       notification.parentNode.removeChild(notification);
@@ -201,7 +216,7 @@ function showNotification(message, type = 'info') {
 if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
   chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     console.log(`[${PROMPT_LIBRARY_NS}] Received message:`, message);
-    
+
     if (message.action === 'insertPrompt') {
       try {
         const success = await PromptInjector.insertText(message.text);
@@ -211,7 +226,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
         }
       } catch (error) {
         console.error(`[${PROMPT_LIBRARY_NS}] Insert failed, trying clipboard:`, error);
-        
+
         const clipboardSuccess = await PromptInjector.copyToClipboard(message.text);
         if (clipboardSuccess) {
           showNotification('Could not insert directly. Content copied to clipboard!', 'info');
@@ -223,17 +238,17 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
       }
       return true;
     }
-    
+
     if (message.action === 'checkTarget') {
       const target = PromptInjector.findTarget();
-      sendResponse({ 
-        hasTarget: !!target, 
+      sendResponse({
+        hasTarget: !!target,
         targetInfo: target ? {
           tagName: target.tagName,
           type: target.type || 'N/A',
           isContentEditable: target.isContentEditable,
           placeholder: target.placeholder || 'N/A'
-        } : null 
+        } : null
       });
       return true;
     }
@@ -243,7 +258,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
 if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessage) {
   browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     console.log(`[${PROMPT_LIBRARY_NS}] Received message (Firefox):`, message);
-    
+
     if (message.action === 'insertPrompt') {
       try {
         const success = await PromptInjector.insertText(message.text);
@@ -253,7 +268,7 @@ if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessa
         }
       } catch (error) {
         console.error(`[${PROMPT_LIBRARY_NS}] Insert failed, trying clipboard:`, error);
-        
+
         const clipboardSuccess = await PromptInjector.copyToClipboard(message.text);
         if (clipboardSuccess) {
           showNotification('Could not insert directly. Content copied to clipboard!', 'info');
@@ -264,17 +279,17 @@ if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessa
         }
       }
     }
-    
+
     if (message.action === 'checkTarget') {
       const target = PromptInjector.findTarget();
-      return { 
-        hasTarget: !!target, 
+      return {
+        hasTarget: !!target,
         targetInfo: target ? {
           tagName: target.tagName,
           type: target.type || 'N/A',
           isContentEditable: target.isContentEditable,
           placeholder: target.placeholder || 'N/A'
-        } : null 
+        } : null
       };
     }
   });

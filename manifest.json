@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Prompt Library",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "description": "Manage and insert prompts into AI chat interfaces",
   "icons": {
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
+    "96": "icons/icon96.png",
     "128": "icons/icon128.png"
   },
-  "description": "Manage and insert prompts into AI chat interfaces",
   "permissions": [
     "activeTab",
     "storage",
@@ -16,11 +18,36 @@
     "clipboardRead"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://bard.google.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://www.perplexity.ai/*",
+    "https://poe.com/*",
+    "https://deepseek.com/*",
+    "https://chat.deepseek.com/*",
+    "https://kimi.moonshot.cn/*",
+    "https://chatglm.cn/*",
+    "https://chatglm.com/*",
+    "https://qwen.chat/*",
+    "https://chat.qwen.com/*",
+    "https://yiyan.baidu.com/*",
+    "https://tongyi.aliyun.com/*",
+    "https://chat.anthropic.com/*",
+    "https://chat.you.com/*",
+    "https://huggingface.co/chat/*",
+    "https://chat.character.ai/*",
+    "https://chat.forefront.ai/*",
+    "https://chat.mistral.ai/*",
+    "https://grok.x.ai/*",
+    "https://chat.lmsys.org/*",
+    "https://dust.tt/*"
   ],
   "action": {
     "default_icon": {
       "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
       "48": "icons/icon48.png"
     },
     "default_popup": "popup.html",
@@ -35,7 +62,31 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://bard.google.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://www.perplexity.ai/*",
+        "https://poe.com/*",
+        "https://deepseek.com/*",
+        "https://chat.deepseek.com/*",
+        "https://kimi.moonshot.cn/*",
+        "https://chatglm.cn/*",
+        "https://chatglm.com/*",
+        "https://qwen.chat/*",
+        "https://chat.qwen.com/*",
+        "https://yiyan.baidu.com/*",
+        "https://tongyi.aliyun.com/*",
+        "https://chat.anthropic.com/*",
+        "https://chat.you.com/*",
+        "https://huggingface.co/chat/*",
+        "https://chat.character.ai/*",
+        "https://chat.forefront.ai/*",
+        "https://chat.mistral.ai/*",
+        "https://grok.x.ai/*",
+        "https://chat.lmsys.org/*",
+        "https://dust.tt/*"
       ],
       "js": [
         "content.js"
