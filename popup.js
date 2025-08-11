@@ -10,6 +10,14 @@ class PromptManager {
     this.bindEvents();
     await this.loadPrompts();
     await this.loadTags();
+    
+    // Auto-focus search input when popup opens
+    setTimeout(() => {
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }, 100);
   }
 
   bindEvents() {
