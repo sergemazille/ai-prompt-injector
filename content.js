@@ -1,4 +1,4 @@
-const PROMPT_LIBRARY_NS = 'prompt_library_extension';
+const AI_PROMPT_INJECTOR_NS = 'ai_prompt_injector';
 
 const PromptInjector = {
   selectors: [
@@ -31,26 +31,26 @@ const PromptInjector = {
     const specificSelectors = this.domainSelectors[hostname] || [];
     const allSelectors = [...specificSelectors, ...this.selectors];
 
-    console.log(`[${PROMPT_LIBRARY_NS}] Searching for input field on ${hostname}`);
-    console.log(`[${PROMPT_LIBRARY_NS}] Using selectors:`, allSelectors);
+    console.log(`[${AI_PROMPT_INJECTOR_NS}] Searching for input field on ${hostname}`);
+    console.log(`[${AI_PROMPT_INJECTOR_NS}] Using selectors:`, allSelectors);
 
     for (const selector of allSelectors) {
       try {
         const elements = document.querySelectorAll(selector);
-        console.log(`[${PROMPT_LIBRARY_NS}] Found ${elements.length} elements for selector: ${selector}`);
+        console.log(`[${AI_PROMPT_INJECTOR_NS}] Found ${elements.length} elements for selector: ${selector}`);
 
         for (const element of elements) {
           if (this.isValidTarget(element)) {
-            console.log(`[${PROMPT_LIBRARY_NS}] Valid target found:`, element);
+            console.log(`[${AI_PROMPT_INJECTOR_NS}] Valid target found:`, element);
             return element;
           }
         }
       } catch (error) {
-        console.warn(`[${PROMPT_LIBRARY_NS}] Error with selector ${selector}:`, error);
+        console.warn(`[${AI_PROMPT_INJECTOR_NS}] Error with selector ${selector}:`, error);
       }
     }
 
-    console.warn(`[${PROMPT_LIBRARY_NS}] No suitable input field found`);
+    console.warn(`[${AI_PROMPT_INJECTOR_NS}] No suitable input field found`);
     return null;
   },
 
@@ -74,7 +74,7 @@ const PromptInjector = {
   },
 
   async insertText(text) {
-    console.log(`[${PROMPT_LIBRARY_NS}] Attempting to insert text:`, text.substring(0, 100) + '...');
+    console.log(`[${AI_PROMPT_INJECTOR_NS}] Attempting to insert text:`, text.substring(0, 100) + '...');
 
     const target = this.findTarget();
     if (!target) {
@@ -88,10 +88,10 @@ const PromptInjector = {
         this.insertIntoInput(target, text);
       }
 
-      console.log(`[${PROMPT_LIBRARY_NS}] Text inserted successfully`);
+      console.log(`[${AI_PROMPT_INJECTOR_NS}] Text inserted successfully`);
       return true;
     } catch (error) {
-      console.error(`[${PROMPT_LIBRARY_NS}] Insertion failed:`, error);
+      console.error(`[${AI_PROMPT_INJECTOR_NS}] Insertion failed:`, error);
       throw error;
     }
   },
@@ -143,7 +143,7 @@ const PromptInjector = {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-        console.log(`[${PROMPT_LIBRARY_NS}] Text copied to clipboard`);
+        console.log(`[${AI_PROMPT_INJECTOR_NS}] Text copied to clipboard`);
         return true;
       } else {
         const textArea = document.createElement('textarea');
@@ -159,12 +159,12 @@ const PromptInjector = {
         document.body.removeChild(textArea);
 
         if (successful) {
-          console.log(`[${PROMPT_LIBRARY_NS}] Text copied to clipboard (fallback method)`);
+          console.log(`[${AI_PROMPT_INJECTOR_NS}] Text copied to clipboard (fallback method)`);
           return true;
         }
       }
     } catch (error) {
-      console.error(`[${PROMPT_LIBRARY_NS}] Clipboard copy failed:`, error);
+      console.error(`[${AI_PROMPT_INJECTOR_NS}] Clipboard copy failed:`, error);
     }
     return false;
   }
@@ -200,7 +200,7 @@ function showNotification(message, type = 'info') {
 
 if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
   chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log(`[${PROMPT_LIBRARY_NS}] Received message:`, message);
+    console.log(`[${AI_PROMPT_INJECTOR_NS}] Received message:`, message);
 
     if (message.action === 'insertPrompt') {
       try {
@@ -210,7 +210,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
           sendResponse({ success: true });
         }
       } catch (error) {
-        console.error(`[${PROMPT_LIBRARY_NS}] Insert failed, trying clipboard:`, error);
+        console.error(`[${AI_PROMPT_INJECTOR_NS}] Insert failed, trying clipboard:`, error);
 
         const clipboardSuccess = await PromptInjector.copyToClipboard(message.text);
         if (clipboardSuccess) {
@@ -242,7 +242,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
 
 if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessage) {
   browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log(`[${PROMPT_LIBRARY_NS}] Received message (Firefox):`, message);
+    console.log(`[${AI_PROMPT_INJECTOR_NS}] Received message (Firefox):`, message);
 
     if (message.action === 'insertPrompt') {
       try {
@@ -252,7 +252,7 @@ if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessa
           return { success: true };
         }
       } catch (error) {
-        console.error(`[${PROMPT_LIBRARY_NS}] Insert failed, trying clipboard:`, error);
+        console.error(`[${AI_PROMPT_INJECTOR_NS}] Insert failed, trying clipboard:`, error);
 
         const clipboardSuccess = await PromptInjector.copyToClipboard(message.text);
         if (clipboardSuccess) {
@@ -280,4 +280,4 @@ if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessa
   });
 }
 
-console.log(`[${PROMPT_LIBRARY_NS}] Content script loaded on ${window.location.hostname}`);
+console.log(`[${AI_PROMPT_INJECTOR_NS}] Content script loaded on ${window.location.hostname}`);

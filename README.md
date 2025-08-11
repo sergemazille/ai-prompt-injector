@@ -1,4 +1,4 @@
-# Prompt Library - Browser Extension
+# AI Prompt Injector - Browser Extension
 
 A minimalist browser extension to manage and insert prompts into AI chat interfaces.
 
@@ -36,7 +36,7 @@ A minimalist browser extension to manage and insert prompts into AI chat interfa
 
 ### Usage
 
-1. Click the "Prompt Library" icon in the toolbar
+1. Click the "AI Prompt Injector" icon in the toolbar
 2. Create your first prompts with "New Prompt"
 3. Organize with tags (separated by commas)
 4. On an AI chat page, click "Insert" to insert the prompt

@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Debugging
 - **Extension popup**: Right-click extension icon > "Inspect" or use extension developer tools
-- **Content script**: F12 on target webpage, look for `[prompt_library_extension]` logs
+- **Content script**: F12 on target webpage, look for `[ai_prompt_injector]` logs
 - **Background**: Check extension service worker logs in browser extension management
 
 ## Architecture Overview

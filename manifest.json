@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Prompt Library",
+  "name": "AI Prompt Injector",
   "version": "1.0.1",
   "description": "Manage and insert prompts into AI chat interfaces",
   "icons": {
@@ -36,7 +36,7 @@
       "48": "icons/icon48.png"
     },
     "default_popup": "popup.html",
-    "default_title": "Prompt Library"
+    "default_title": "AI Prompt Injector"
   },
   "background": {
     "scripts": [
