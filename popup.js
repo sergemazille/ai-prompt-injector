@@ -119,7 +119,7 @@ class PromptManager {
       // Show drop zone
       dropZone.classList.remove('hidden');
       promptList.style.display = 'none';
-      document.getElementById('import-btn').textContent = 'Annuler';
+      document.getElementById('import-btn').textContent = 'Cancel';
       // Clear previous paste content
       const textarea = document.getElementById('paste-json');
       textarea.value = '';
@@ -164,7 +164,7 @@ class PromptManager {
     const jsonText = textarea.value.trim();
     
     if (!jsonText) {
-      this.showNotification('Veuillez coller du contenu JSON d\'abord');
+      this.showNotification('Please paste JSON content first');
       return;
     }
     
@@ -427,7 +427,7 @@ class PromptManager {
     
     if (!importFile) {
       console.error('Import file element not found!');
-      this.showNotification('Erreur: élément import-file introuvable');
+      this.showNotification('Error: import-file element not found');
       return;
     }
     
@@ -468,10 +468,10 @@ class PromptManager {
         lastModified: file.lastModified
       });
       
-      // Vérification du type de fichier
+      // Check file type
       if (!file.name.toLowerCase().endsWith('.json')) {
         console.log('File is not JSON format');
-        this.showNotification('Veuillez sélectionner un fichier JSON');
+        this.showNotification('Please select a JSON file');
         e.target.value = '';
         return;
       }
@@ -486,13 +486,13 @@ class PromptManager {
       console.log('Import result:', result);
       
       if (result.imported === 0) {
-        this.showNotification('Aucun nouveau prompt importé');
+        this.showNotification('No new prompts imported');
         console.log('No prompts were imported');
       } else if (result.imported === result.total) {
-        this.showNotification(`${result.imported} prompts importés avec succès !`);
+        this.showNotification(`${result.imported} prompts imported successfully!`);
         console.log(`Successfully imported all ${result.imported} prompts`);
       } else {
-        this.showNotification(`${result.imported}/${result.total} prompts importés`);
+        this.showNotification(`${result.imported}/${result.total} prompts imported`);
         console.log(`Partially imported ${result.imported} out of ${result.total} prompts`);
       }
       
@@ -509,7 +509,7 @@ class PromptManager {
     } catch (error) {
       console.error('Error importing prompts:', error);
       console.error('Error stack:', error.stack);
-      this.showNotification(`Erreur d'import: ${error.message}`);
+      this.showNotification(`Import error: ${error.message}`);
     }
     
     e.target.value = '';
@@ -596,11 +596,11 @@ class PromptManager {
       }
 
       await this.copyToClipboard(prompt.template);
-      this.showNotification('Prompt copié !');
+      this.showNotification('Prompt copied!');
       console.log('Prompt copied to clipboard:', prompt.label);
     } catch (error) {
       console.error('Error copying prompt to clipboard:', error);
-      this.showNotification('Erreur lors de la copie');
+      this.showNotification('Error copying prompt');
     }
   }
 

@@ -411,7 +411,7 @@ h1 {
 }
 
 .import-method.recommended::before {
-  content: "Recommandé";
+  content: "Recommended";
   position: absolute;
   top: 8px;
   right: 8px;
