@@ -32,7 +32,6 @@ class PromptManager {
       'export-btn': () => this.exportPrompts(),
       'import-btn': () => this.toggleImportMode(),
       'browse-btn': () => this.importPrompts(),
-      'paste-from-clipboard': () => this.pasteFromClipboard(),
       'import-from-paste': () => this.importFromPaste(),
     };
     
@@ -158,48 +157,6 @@ class PromptManager {
     }
   }
 
-  async pasteFromClipboard() {
-    console.log('Attempting to paste from clipboard');
-    const textarea = document.getElementById('paste-json');
-    
-    try {
-      // Check if clipboard API is available and we have permission
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        console.log('Clipboard API available, attempting to read...');
-        
-        // Try to read from clipboard
-        const text = await navigator.clipboard.readText();
-        console.log('Successfully read from clipboard, length:', text.length);
-        
-        if (text.trim()) {
-          textarea.value = text;
-          this.updateImportButtonState();
-          this.showNotification('Contenu collé depuis le presse-papier !');
-          return;
-        } else {
-          console.log('Clipboard is empty');
-          this.showNotification('Le presse-papier est vide');
-        }
-      } else {
-        console.log('Clipboard API not available');
-        throw new Error('Clipboard API not supported');
-      }
-    } catch (error) {
-      console.error('Failed to read from clipboard:', error.name, error.message);
-      
-      // Fallback: focus textarea and provide clear instructions
-      textarea.focus();
-      textarea.select();
-      
-      if (error.name === 'NotAllowedError') {
-        this.showNotification('Permission refusée. Collez avec Ctrl+V');
-      } else if (error.name === 'NotFoundError') {
-        this.showNotification('Presse-papier vide. Collez avec Ctrl+V');
-      } else {
-        this.showNotification('Utilisez Ctrl+V pour coller');
-      }
-    }
-  }
 
   async importFromPaste() {
     console.log('Importing from pasted content');

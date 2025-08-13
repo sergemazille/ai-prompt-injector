@@ -13,9 +13,7 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting",
-    "clipboardWrite",
-    "clipboardRead"
+    "scripting"
   ],
   "host_permissions": [
     "https://chatgpt.com/*",
@@ -69,7 +67,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "myprompts@example.com",
+      "id": "ai-prompt-injector@fun-web.dev",
       "strict_min_version": "128.0"
     }
   }
