@@ -330,11 +330,73 @@ class PromptManager {
 
     // Clear container and add prompts safely
     container.innerHTML = '';
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = filteredPrompts.map(prompt => this.createPromptElement(prompt)).join('');
-    while (tempDiv.firstChild) {
-      container.appendChild(tempDiv.firstChild);
+    filteredPrompts.forEach(prompt => {
+      const element = this.createPromptElementDOM(prompt);
+      container.appendChild(element);
+    });
+  }
+
+  createPromptElementDOM(prompt) {
+    // Create main container
+    const promptItem = document.createElement('div');
+    promptItem.className = 'prompt-item';
+    promptItem.dataset.id = prompt.id;
+
+    // Create header
+    const header = document.createElement('div');
+    header.className = 'prompt-header';
+    
+    const title = document.createElement('h3');
+    title.className = 'prompt-title';
+    title.textContent = prompt.label;
+    
+    const star = document.createElement('span');
+    star.className = prompt.favorite ? 'favorite-star favorited' : 'favorite-star';
+    star.dataset.id = prompt.id;
+    star.title = prompt.favorite ? 'Remove from favorites' : 'Add to favorites';
+    star.textContent = prompt.favorite ? '★' : '☆';
+    
+    header.appendChild(title);
+    header.appendChild(star);
+
+    // Create tags container
+    const tagsContainer = document.createElement('div');
+    tagsContainer.className = 'prompt-tags';
+    if (prompt.tags && prompt.tags.length > 0) {
+      prompt.tags.forEach(tag => {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'tag';
+        tagSpan.dataset.tag = tag;
+        tagSpan.textContent = tag;
+        tagsContainer.appendChild(tagSpan);
+      });
     }
+
+    // Create actions container
+    const actions = document.createElement('div');
+    actions.className = 'prompt-actions';
+    
+    const buttons = [
+      { class: 'insert-btn', text: 'Insert' },
+      { class: 'copy-btn', text: 'Copy' },
+      { class: 'edit-btn', text: 'Edit' },
+      { class: 'delete-btn', text: 'Delete' }
+    ];
+    
+    buttons.forEach(btnConfig => {
+      const button = document.createElement('button');
+      button.className = btnConfig.class;
+      button.dataset.id = prompt.id;
+      button.textContent = btnConfig.text;
+      actions.appendChild(button);
+    });
+
+    // Assemble the prompt item
+    promptItem.appendChild(header);
+    promptItem.appendChild(tagsContainer);
+    promptItem.appendChild(actions);
+    
+    return promptItem;
   }
 
   createPromptElement(prompt) {
