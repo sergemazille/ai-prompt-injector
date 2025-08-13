@@ -2,6 +2,8 @@
 
 A minimalist browser extension to manage and insert prompts into AI chat interfaces.
 
+![AI Prompt Injector](screenshots/AI%20Prompt%20Injector.jpg)
+
 ## Features
 
 - **Prompt Management**: Create, edit, delete and organize your prompts
