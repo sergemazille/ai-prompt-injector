@@ -273,11 +273,10 @@ h1 {
 }
 
 .prompt-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 4px;
-  flex-wrap: wrap;
   margin-top: auto;
-  justify-content: center;
   padding-top: 8px;
 }
 
@@ -317,10 +316,15 @@ h1 {
   background: #0860ca !important;
 }
 
-.delete-btn:hover {
+.delete-btn {
   background: #da3633 !important;
   color: #fff !important;
   border-color: #da3633 !important;
+}
+
+.delete-btn:hover {
+  background: #c93a36 !important;
+  border-color: #c93a36 !important;
 }
 
 .prompt-content {
