@@ -1,6 +1,6 @@
 # Privacy Policy for AI Prompt Injector
 
-*Last updated: January 2025*
+*Last updated: August 2025*
 
 ## Overview
 
