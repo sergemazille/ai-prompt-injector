@@ -320,11 +320,21 @@ class PromptManager {
     }
 
     if (filteredPrompts.length === 0) {
-      container.innerHTML = '<div class="no-results">No prompts match the current filter.</div>';
+      container.innerHTML = '';
+      const noResults = document.createElement('div');
+      noResults.className = 'no-results';
+      noResults.textContent = 'No prompts match the current filter.';
+      container.appendChild(noResults);
       return;
     }
 
-    container.innerHTML = filteredPrompts.map(prompt => this.createPromptElement(prompt)).join('');
+    // Clear container and add prompts safely
+    container.innerHTML = '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = filteredPrompts.map(prompt => this.createPromptElement(prompt)).join('');
+    while (tempDiv.firstChild) {
+      container.appendChild(tempDiv.firstChild);
+    }
   }
 
   createPromptElement(prompt) {

@@ -11,16 +11,38 @@ echo "Building Firefox addon package v${VERSION}..."
 # Remove old build if exists
 rm -f "$FILENAME"
 
-# Create the ZIP using Python (cross-platform compatible)
-python3 -m zipfile -c "$FILENAME" \
-    manifest.json \
-    *.js \
-    *.html \
-    *.css \
-    icons/*.png \
-    PRIVACY.md \
-    LICENSE \
-    README.md
+# Create temporary directory for clean build
+TEMP_DIR=$(mktemp -d)
+echo "Using temp directory: $TEMP_DIR"
+
+# Copy files preserving structure
+cp manifest.json "$TEMP_DIR/"
+cp *.js "$TEMP_DIR/"
+cp *.html "$TEMP_DIR/"
+cp *.css "$TEMP_DIR/"
+mkdir -p "$TEMP_DIR/icons"
+cp icons/*.png "$TEMP_DIR/icons/"
+cp PRIVACY.md LICENSE README.md "$TEMP_DIR/" 2>/dev/null || true
+
+# Create ZIP from temp directory using Python
+python3 -c "
+import zipfile
+import os
+from pathlib import Path
+
+temp_dir = '$TEMP_DIR'
+output_file = '$FILENAME'
+
+with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+    for root, dirs, files in os.walk(temp_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            arcname = os.path.relpath(file_path, temp_dir)
+            zf.write(file_path, arcname)
+"
+
+# Clean up
+rm -rf "$TEMP_DIR"
 
 echo "✅ Firefox addon package created: $FILENAME"
 echo "📦 Size: $(du -h "$FILENAME" | cut -f1)"
