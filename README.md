@@ -104,9 +104,8 @@ Prompts are stored in JSON format:
 - `activeTab`: Access to active tab for insertion
 - `storage`: Local storage of prompts
 - `scripting`: Script injection for DOM insertion
-- `clipboardWrite`: Backup copy if insertion impossible
-- `clipboardRead`: Read clipboard content for import functionality
-- `host_permissions: ["<all_urls>"]`: Universal access for content script injection
+
+See our [Privacy Policy](PRIVACY.md) for detailed information about data handling and permissions.
 
 ## Development
 
