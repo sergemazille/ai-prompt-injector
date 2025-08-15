@@ -26,14 +26,6 @@ A minimalist browser extension to manage and insert prompts into AI chat interfa
 5. Select the `manifest.json` file in the project folder
 6. The extension appears in the Firefox toolbar
 
-#### Chrome/Chromium
-1. Clone or download this project
-2. Open Chrome and go to `chrome://extensions`
-3. Enable "Developer mode" (toggle in top right)
-4. Click "Load unpacked"
-5. Select the project folder
-6. The extension appears in the Chrome toolbar
-
 **Important**: After installation, refresh open web pages for the content script to load.
 
 ### Usage
@@ -63,7 +55,7 @@ If insertion doesn't work:
 ├── popup.js               # Interface logic
 ├── storage.js             # Storage management
 ├── content.js             # Page injection script
-├── browser-polyfill.js    # Firefox/Chrome API compatibility
+
 ├── background.js          # Background script
 ├── icons/                 # Extension icons
 │   ├── icon16.png         # 16x16 icon
@@ -88,7 +80,7 @@ Prompts are stored in JSON format:
 
 ## Compatibility
 
-- Firefox MV3 and Chrome/Chromium MV3
+- Firefox MV3
 - Supported sites by default:
   - ChatGPT (chat.openai.com)
   - Claude (claude.ai)
@@ -111,6 +103,6 @@ See our [Privacy Policy](PRIVACY.md) for detailed information about data handlin
 
 ## Development
 
-The extension uses the standard WebExtensions API, compatible with Firefox MV3 and Chrome MV3. No external dependencies required.
+The extension uses the standard WebExtensions API, compatible with Firefox MV3. No external dependencies required.
 
 To modify DOM selectors by site, edit the `domainSelectors` object in `content.js`.

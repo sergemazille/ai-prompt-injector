@@ -198,47 +198,7 @@ function showNotification(message, type = 'info') {
   }, 4000);
 }
 
-if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-  chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log(`[${AI_PROMPT_INJECTOR_NS}] Received message:`, message);
 
-    if (message.action === 'insertPrompt') {
-      try {
-        const success = await PromptInjector.insertText(message.text);
-        if (success) {
-          showNotification('Prompt inserted successfully!', 'success');
-          sendResponse({ success: true });
-        }
-      } catch (error) {
-        console.error(`[${AI_PROMPT_INJECTOR_NS}] Insert failed, trying clipboard:`, error);
-
-        const clipboardSuccess = await PromptInjector.copyToClipboard(message.text);
-        if (clipboardSuccess) {
-          showNotification('Could not insert directly. Content copied to clipboard!', 'info');
-          sendResponse({ success: true, fallback: 'clipboard' });
-        } else {
-          showNotification('Insert failed and clipboard unavailable', 'error');
-          sendResponse({ success: false, error: error.message });
-        }
-      }
-      return true;
-    }
-
-    if (message.action === 'checkTarget') {
-      const target = PromptInjector.findTarget();
-      sendResponse({
-        hasTarget: !!target,
-        targetInfo: target ? {
-          tagName: target.tagName,
-          type: target.type || 'N/A',
-          isContentEditable: target.isContentEditable,
-          placeholder: target.placeholder || 'N/A'
-        } : null
-      });
-      return true;
-    }
-  });
-}
 
 if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessage) {
   browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {

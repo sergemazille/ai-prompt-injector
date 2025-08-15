@@ -10,7 +10,7 @@ class PromptManager {
     this.bindEvents();
     await this.loadPrompts();
     await this.loadTags();
-    
+
     // Auto-focus search input when popup opens
     setTimeout(() => {
       const searchInput = document.getElementById('search-input');
@@ -22,7 +22,7 @@ class PromptManager {
 
   bindEvents() {
     console.log('Binding events...');
-    
+
     const elements = {
       'new-prompt-btn': () => this.showForm(),
       'cancel-btn': () => this.hideForm(),
@@ -34,16 +34,16 @@ class PromptManager {
       'browse-btn': () => this.importPrompts(),
       'import-from-paste': () => this.importFromPaste(),
     };
-    
+
     for (const [id, handler] of Object.entries(elements)) {
       const element = document.getElementById(id);
       console.log(`Element ${id}:`, element);
-      
+
       if (!element) {
         console.error(`Element with id '${id}' not found!`);
         continue;
       }
-      
+
       if (id === 'prompt-form-element') {
         element.addEventListener('submit', handler);
       } else if (id === 'tag-filter') {
@@ -53,15 +53,15 @@ class PromptManager {
       } else {
         element.addEventListener('click', handler);
       }
-      
+
       console.log(`Event bound for ${id}`);
     }
-    
+
     console.log('All events bound');
-    
+
     // Setup drag and drop for import
     this.setupDragAndDrop();
-    
+
     // Setup paste textarea input listener
     this.setupPasteTextarea();
   }
@@ -83,7 +83,7 @@ class PromptManager {
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
-      
+
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         const fakeEvent = {
@@ -114,7 +114,7 @@ class PromptManager {
     console.log('Toggling import mode');
     const dropZone = document.getElementById('drop-zone');
     const promptList = document.getElementById('prompt-list');
-    
+
     if (dropZone.classList.contains('hidden')) {
       // Show drop zone
       dropZone.classList.remove('hidden');
@@ -125,7 +125,7 @@ class PromptManager {
       textarea.value = '';
       this.updateImportButtonState();
       this.highlightRecommendedMethod();
-      
+
       // Auto-focus textarea for Firefox users (recommended method)
       const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
       if (isFirefox) {
@@ -142,19 +142,11 @@ class PromptManager {
   }
 
   highlightRecommendedMethod() {
-    // Detect if we're on Firefox to recommend paste method
-    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
     const methods = document.querySelectorAll('.import-method');
-    
-    if (isFirefox) {
-      // Highlight paste method for Firefox
-      methods[2]?.classList.add('recommended');
-      methods[0]?.classList.remove('recommended');
-    } else {
-      // Highlight drag & drop for Chrome
-      methods[0]?.classList.add('recommended');
-      methods[2]?.classList.remove('recommended');
-    }
+
+    // Firefox only - highlight paste method
+    methods[2]?.classList.add('recommended');
+    methods[0]?.classList.remove('recommended');
   }
 
 
@@ -162,12 +154,12 @@ class PromptManager {
     console.log('Importing from pasted content');
     const textarea = document.getElementById('paste-json');
     const jsonText = textarea.value.trim();
-    
+
     if (!jsonText) {
       this.showNotification('Please paste JSON content first');
       return;
     }
-    
+
     // Create a fake event object to reuse existing import logic
     const fakeEvent = {
       target: {
@@ -177,14 +169,14 @@ class PromptManager {
         }]
       }
     };
-    
+
     await this.handleImportFile(fakeEvent);
   }
 
   updateImportButtonState() {
     const textarea = document.getElementById('paste-json');
     const importBtn = document.getElementById('import-from-paste');
-    
+
     if (textarea && importBtn) {
       importBtn.disabled = !textarea.value.trim();
     }
@@ -232,11 +224,11 @@ class PromptManager {
 
   async handleSubmit(e) {
     e.preventDefault();
-    
+
     const title = document.getElementById('prompt-title').value.trim();
     const content = document.getElementById('prompt-content').value.trim();
     const tagsInput = document.getElementById('prompt-tags').value.trim();
-    
+
     if (!title || !content) {
       alert('Title and content are required');
       return;
@@ -276,9 +268,9 @@ class PromptManager {
       const tags = await promptStorage.getAllTags();
       const select = document.getElementById('tag-filter');
       const currentValue = select.value;
-      
+
       select.innerHTML = '<option value="">All tags</option>';
-      
+
       tags.forEach(tag => {
         const option = document.createElement('option');
         option.value = tag;
@@ -294,7 +286,7 @@ class PromptManager {
   renderPrompts(prompts) {
     const container = document.getElementById('prompt-list');
     const emptyState = document.getElementById('empty-state');
-    
+
     if (prompts.length === 0) {
       container.innerHTML = '';
       emptyState.classList.remove('hidden');
@@ -302,19 +294,19 @@ class PromptManager {
     }
 
     emptyState.classList.add('hidden');
-    
+
     let filteredPrompts = prompts;
-    
+
     // Apply search filter first (primary filter)
     if (this.currentSearchFilter) {
-      filteredPrompts = filteredPrompts.filter(prompt => 
+      filteredPrompts = filteredPrompts.filter(prompt =>
         prompt.label.toLowerCase().includes(this.currentSearchFilter)
       );
     }
-    
+
     // Apply tag filter second (secondary filter)
     if (this.currentFilter) {
-      filteredPrompts = filteredPrompts.filter(prompt => 
+      filteredPrompts = filteredPrompts.filter(prompt =>
         prompt.tags && prompt.tags.includes(this.currentFilter)
       );
     }
@@ -345,17 +337,17 @@ class PromptManager {
     // Create header
     const header = document.createElement('div');
     header.className = 'prompt-header';
-    
+
     const title = document.createElement('h3');
     title.className = 'prompt-title';
     title.textContent = prompt.label;
-    
+
     const star = document.createElement('span');
     star.className = prompt.favorite ? 'favorite-star favorited' : 'favorite-star';
     star.dataset.id = prompt.id;
     star.title = prompt.favorite ? 'Remove from favorites' : 'Add to favorites';
     star.textContent = prompt.favorite ? '★' : '☆';
-    
+
     header.appendChild(title);
     header.appendChild(star);
 
@@ -375,14 +367,14 @@ class PromptManager {
     // Create actions container
     const actions = document.createElement('div');
     actions.className = 'prompt-actions';
-    
+
     const buttons = [
       { class: 'insert-btn', text: 'Insert' },
       { class: 'copy-btn', text: 'Copy' },
       { class: 'edit-btn', text: 'Edit' },
       { class: 'delete-btn', text: 'Delete' }
     ];
-    
+
     buttons.forEach(btnConfig => {
       const button = document.createElement('button');
       button.className = btnConfig.class;
@@ -395,7 +387,7 @@ class PromptManager {
     promptItem.appendChild(header);
     promptItem.appendChild(tagsContainer);
     promptItem.appendChild(actions);
-    
+
     return promptItem;
   }
 
@@ -445,7 +437,7 @@ class PromptManager {
       const jsonData = await promptStorage.exportPrompts();
       const blob = new Blob([jsonData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      
+
       const a = document.createElement('a');
       a.href = url;
       a.download = `prompts-${new Date().toISOString().split('T')[0]}.json`;
@@ -461,7 +453,7 @@ class PromptManager {
 
   async importPrompts() {
     console.log('Import button clicked');
-    
+
     try {
       // Try modern File System Access API first
       if ('showOpenFilePicker' in window) {
@@ -474,17 +466,17 @@ class PromptManager {
             }
           }]
         });
-        
+
         const file = await fileHandle.getFile();
         console.log('File selected via File System Access API:', file);
-        
+
         // Create a fake event object to maintain compatibility
         const fakeEvent = {
           target: {
             files: [file]
           }
         };
-        
+
         await this.handleImportFile(fakeEvent);
         return;
       }
@@ -492,29 +484,29 @@ class PromptManager {
       console.log('File System Access API failed or cancelled:', error);
       // Fall through to traditional method
     }
-    
+
     // Fallback to traditional input file method
     console.log('Falling back to input file method');
     const importFile = document.getElementById('import-file');
-    
+
     if (!importFile) {
       console.error('Import file element not found!');
       this.showNotification('Error: import-file element not found');
       return;
     }
-    
+
     // Reset the input value to ensure change event fires even for same file
     importFile.value = '';
-    
+
     // Add a temporary event listener for this specific import
     const handleFileSelect = async (e) => {
       console.log('Temporary file handler called');
       importFile.removeEventListener('change', handleFileSelect);
       await this.handleImportFile(e);
     };
-    
+
     importFile.addEventListener('change', handleFileSelect);
-    
+
     console.log('Triggering file dialog...');
     importFile.click();
   }
@@ -523,10 +515,10 @@ class PromptManager {
     console.log('handleImportFile called with event:', e);
     console.log('Event target:', e.target);
     console.log('Files:', e.target.files);
-    
+
     const file = e.target.files[0];
     console.log('Import file selected:', file);
-    
+
     if (!file) {
       console.log('No file selected');
       return;
@@ -539,7 +531,7 @@ class PromptManager {
         type: file.type,
         lastModified: file.lastModified
       });
-      
+
       // Check file type
       if (!file.name.toLowerCase().endsWith('.json')) {
         console.log('File is not JSON format');
@@ -547,16 +539,16 @@ class PromptManager {
         e.target.value = '';
         return;
       }
-      
+
       console.log('Reading file content...');
       const text = await file.text();
       console.log('File content read, length:', text.length);
       console.log('File content preview:', text.substring(0, 200) + '...');
-      
+
       console.log('Calling importPrompts...');
       const result = await promptStorage.importPrompts(text);
       console.log('Import result:', result);
-      
+
       if (result.imported === 0) {
         this.showNotification('No new prompts imported');
         console.log('No prompts were imported');
@@ -567,12 +559,12 @@ class PromptManager {
         this.showNotification(`${result.imported}/${result.total} prompts imported`);
         console.log(`Partially imported ${result.imported} out of ${result.total} prompts`);
       }
-      
+
       console.log('Reloading prompts and tags...');
       await this.loadPrompts();
       await this.loadTags();
       console.log('Import process completed');
-      
+
       // Close import mode if it's open
       const dropZone = document.getElementById('drop-zone');
       if (dropZone && !dropZone.classList.contains('hidden')) {
@@ -583,7 +575,7 @@ class PromptManager {
       console.error('Error stack:', error.stack);
       this.showNotification(`Import error: ${error.message}`);
     }
-    
+
     e.target.value = '';
   }
 
@@ -626,7 +618,7 @@ class PromptManager {
         }
       } catch (error) {
         console.error('Message sending failed:', error);
-        
+
         await this.copyToClipboard(prompt.template);
         console.log('Could not communicate with page. Content copied to clipboard instead.');
         window.close();
@@ -640,10 +632,10 @@ class PromptManager {
   showNotification(message) {
     const notification = document.getElementById('notification');
     const notificationText = document.getElementById('notification-text');
-    
+
     notificationText.textContent = message;
     notification.classList.remove('hidden');
-    
+
     setTimeout(() => {
       notification.classList.add('hidden');
     }, 2000);
@@ -694,13 +686,13 @@ class PromptManager {
       // Get prompt info before toggling for better notification
       const prompt = await promptStorage.getPromptById(promptId);
       const wasInitiallyFavorite = prompt.favorite;
-      
+
       const newFavoriteStatus = await promptStorage.toggleFavorite(promptId);
       console.log('Favorite toggled:', promptId, 'New status:', newFavoriteStatus);
-      
+
       // Reload prompts to reflect the new sorting order
       await this.loadPrompts();
-      
+
       // Show a more informative notification
       let message;
       if (newFavoriteStatus) {
@@ -718,7 +710,7 @@ class PromptManager {
 
 document.addEventListener('DOMContentLoaded', () => {
   const manager = new PromptManager();
-  
+
   document.addEventListener('click', async (e) => {
     if (e.target.classList.contains('insert-btn')) {
       const promptId = e.target.dataset.id;
@@ -742,14 +734,14 @@ document.addEventListener('DOMContentLoaded', () => {
       await manager.filterPrompts(tag);
     } else if (e.target.classList.contains('prompt-item') || e.target.closest('.prompt-item')) {
       // Ignore clicks on buttons, tags, and stars - they have their own handlers
-      if (e.target.closest('.prompt-actions') || 
-          e.target.classList.contains('tag') || 
-          e.target.classList.contains('favorite-star')) {
+      if (e.target.closest('.prompt-actions') ||
+        e.target.classList.contains('tag') ||
+        e.target.classList.contains('favorite-star')) {
         return;
       }
-      
-      const promptItem = e.target.classList.contains('prompt-item') 
-        ? e.target 
+
+      const promptItem = e.target.classList.contains('prompt-item')
+        ? e.target
         : e.target.closest('.prompt-item');
       const promptId = promptItem.dataset.id;
       await manager.insertPrompt(promptId);

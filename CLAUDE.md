@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Manual installation for development:
 # 1. Firefox: Go to about:debugging > "This Firefox" > "Load Temporary Add-on" > select manifest.json
-# 2. Chrome: Go to chrome://extensions > Enable Developer mode > "Load unpacked" > select folder
+
 
 # After any code changes, reload extension in browser extension management page
 # After content.js changes, refresh any open web pages for content script to update
@@ -91,7 +91,7 @@ The import system accepts various JSON structures:
 - Custom field mappings supported via `pick()` helper function
 
 ### Browser Compatibility
-- Manifest V3 for Chrome and Firefox
-- Uses browser-polyfill.js for API normalization
+- Manifest V3 for Firefox
+
 - File System Access API with fallback to traditional file input
 - Clipboard API with document.execCommand fallback
