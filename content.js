@@ -23,7 +23,8 @@ const PromptInjector = {
     'chat.qwen.ai': ['textarea', '[contenteditable="true"]'],
     'grok.com': ['textarea', '[contenteditable="true"]'],
     'notebooklm.google.com': ['textarea', '[contenteditable="true"]', '[role="textbox"]'],
-    'aistudio.google.com': ['textarea', '[contenteditable="true"]', '[role="textbox"]']
+    'aistudio.google.com': ['textarea', '[contenteditable="true"]', '[role="textbox"]'],
+    'm365.cloud.microsoft': ['.fai-EditorInput[contenteditable="true"]', '.fai-ChatInput__editor [contenteditable="true"]', '[contenteditable="true"]']
   },
 
   findTarget() {

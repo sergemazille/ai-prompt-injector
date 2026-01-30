@@ -25,7 +25,8 @@
     "https://chat.qwen.ai/*",
     "https://grok.com/*",
     "https://notebooklm.google.com/*",
-    "https://aistudio.google.com/*"
+    "https://aistudio.google.com/*",
+    "https://m365.cloud.microsoft/*"
   ],
   "action": {
     "default_icon": {
@@ -54,7 +55,8 @@
         "https://chat.qwen.ai/*",
         "https://grok.com/*",
         "https://notebooklm.google.com/*",
-        "https://aistudio.google.com/*"
+        "https://aistudio.google.com/*",
+        "https://m365.cloud.microsoft/*"
       ],
       "js": [
         "content.js"
