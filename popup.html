@@ -15,6 +15,7 @@
       <div class="header-actions">
         <button id="import-btn" title="Import prompts">Import</button>
         <button id="export-btn" title="Export prompts">Export</button>
+        <button id="backups-btn" title="Manage backups">Backups</button>
         <button id="new-prompt-btn">New Prompt</button>
       </div>
     </header>
@@ -44,6 +45,15 @@
         </div>
         <small>Only .json files are accepted</small>
       </div>
+    </div>
+
+    <!-- Backup Panel -->
+    <div id="backup-panel" class="backup-panel hidden">
+      <div class="backup-info">Automatic backups on browser startup and before each import. Export regularly in case of uninstall.</div>
+      <div id="backup-list" class="backup-list">
+        <!-- Backups will be dynamically inserted here -->
+      </div>
+      <div id="backup-empty" class="backup-empty hidden">No backups yet.</div>
     </div>
 
     <!-- Filter Section -->

@@ -1,6 +1,9 @@
+if (!window._aiPromptInjectorLoaded) {
+window._aiPromptInjectorLoaded = true;
+
 const AI_PROMPT_INJECTOR_NS = 'ai_prompt_injector';
 
-const PromptInjector = {
+window.PromptInjector = {
   selectors: [
     '#prompt-textarea',
     'textarea[placeholder*="message"]',
@@ -81,19 +84,30 @@ const PromptInjector = {
       throw new Error('No suitable input field found');
     }
 
+    // Tier 1: Direct DOM insertion
     try {
       if (target.isContentEditable || target.contentEditable === 'true') {
         this.insertIntoContentEditable(target, text);
       } else {
         this.insertIntoInput(target, text);
       }
-
-      console.log(`[${AI_PROMPT_INJECTOR_NS}] Text inserted successfully`);
+      console.log(`[${AI_PROMPT_INJECTOR_NS}] Text inserted successfully (direct)`);
       return true;
     } catch (error) {
-      console.error(`[${AI_PROMPT_INJECTOR_NS}] Insertion failed:`, error);
-      throw error;
+      console.warn(`[${AI_PROMPT_INJECTOR_NS}] Direct insertion failed:`, error);
     }
+
+    // Tier 2: execCommand('insertText')
+    try {
+      this.insertViaExecCommand(target, text);
+      console.log(`[${AI_PROMPT_INJECTOR_NS}] Text inserted successfully (execCommand)`);
+      return true;
+    } catch (error) {
+      console.warn(`[${AI_PROMPT_INJECTOR_NS}] execCommand insertion failed:`, error);
+    }
+
+    // Tier 3: throw — caller handles clipboard fallback
+    throw new Error('All insertion methods failed');
   },
 
   insertIntoContentEditable(element, text) {
@@ -139,6 +153,22 @@ const PromptInjector = {
     }
   },
 
+  insertViaExecCommand(element, text) {
+    element.focus();
+
+    if (element.isContentEditable || element.contentEditable === 'true') {
+      const selection = window.getSelection();
+      selection.selectAllChildren(element);
+    } else {
+      element.select();
+    }
+
+    const result = document.execCommand('insertText', false, text);
+    if (!result) {
+      throw new Error('execCommand insertText returned false');
+    }
+  },
+
   async copyToClipboard(text) {
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -170,13 +200,13 @@ const PromptInjector = {
   }
 };
 
-function showNotification(message, type = 'info') {
+window.showNotification = function(message, type = 'info', duration = 4000) {
   const notification = document.createElement('div');
   notification.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+    background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
     color: white;
     padding: 12px 20px;
     border-radius: 6px;
@@ -195,49 +225,24 @@ function showNotification(message, type = 'info') {
     if (notification.parentNode) {
       notification.parentNode.removeChild(notification);
     }
-  }, 4000);
-}
+  }, duration);
+};
 
+} // end load guard
 
+// Process pending injection (set by popup.js before loading this file)
+if (window._aiPromptPending) {
+  const text = window._aiPromptPending;
+  delete window._aiPromptPending;
 
-if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.onMessage) {
-  browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log(`[${AI_PROMPT_INJECTOR_NS}] Received message (Firefox):`, message);
-
-    if (message.action === 'insertPrompt') {
-      try {
-        const success = await PromptInjector.insertText(message.text);
-        if (success) {
-          showNotification('Prompt inserted successfully!', 'success');
-          return { success: true };
-        }
-      } catch (error) {
-        console.error(`[${AI_PROMPT_INJECTOR_NS}] Insert failed, trying clipboard:`, error);
-
-        const clipboardSuccess = await PromptInjector.copyToClipboard(message.text);
-        if (clipboardSuccess) {
-          showNotification('Could not insert directly. Content copied to clipboard!', 'info');
-          return { success: true, fallback: 'clipboard' };
-        } else {
-          showNotification('Insert failed and clipboard unavailable', 'error');
-          return { success: false, error: error.message };
-        }
-      }
-    }
-
-    if (message.action === 'checkTarget') {
-      const target = PromptInjector.findTarget();
-      return {
-        hasTarget: !!target,
-        targetInfo: target ? {
-          tagName: target.tagName,
-          type: target.type || 'N/A',
-          isContentEditable: target.isContentEditable,
-          placeholder: target.placeholder || 'N/A'
-        } : null
-      };
+  window.PromptInjector.insertText(text).then(() => {
+    window.showNotification('Prompt inserted successfully!', 'success');
+  }).catch(async (error) => {
+    const ok = await window.PromptInjector.copyToClipboard(text);
+    if (ok) {
+      window.showNotification('Insertion failed. Prompt copied to clipboard.', 'warning', 6000);
+    } else {
+      window.showNotification('Insert failed and clipboard unavailable', 'error');
     }
   });
 }
-
-console.log(`[${AI_PROMPT_INJECTOR_NS}] Content script loaded on ${window.location.hostname}`);
