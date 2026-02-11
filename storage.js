@@ -289,6 +289,63 @@ class PromptStorage {
       throw error;
     }
   }
+
+  async createBackup(reason = 'manual') {
+    try {
+      const prompts = await this.getPrompts();
+      if (prompts.length === 0) return null;
+
+      const result = await browser.storage.local.get('backups');
+      const backups = result.backups || [];
+
+      const backup = {
+        id: 'backup_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        timestamp: Date.now(),
+        date: new Date().toISOString(),
+        reason,
+        promptCount: prompts.length,
+        prompts
+      };
+
+      backups.unshift(backup);
+      // Keep only the 3 most recent backups
+      while (backups.length > 3) backups.pop();
+
+      await browser.storage.local.set({ backups });
+      return backup;
+    } catch (error) {
+      console.error('Error creating backup:', error);
+      throw error;
+    }
+  }
+
+  async getBackups() {
+    try {
+      const result = await browser.storage.local.get('backups');
+      return result.backups || [];
+    } catch (error) {
+      console.error('Error getting backups:', error);
+      return [];
+    }
+  }
+
+  async restoreBackup(backupId) {
+    try {
+      const backups = await this.getBackups();
+      const backup = backups.find(b => b.id === backupId);
+      if (!backup) throw new Error('Backup not found');
+
+      // Save current state before restoring
+      await this.createBackup('pre-restore');
+
+      // Restore prompts from backup
+      await browser.storage.local.set({ [this.storageKey]: backup.prompts });
+      return { restored: backup.prompts.length };
+    } catch (error) {
+      console.error('Error restoring backup:', error);
+      throw error;
+    }
+  }
 }
 
 const promptStorage = new PromptStorage();

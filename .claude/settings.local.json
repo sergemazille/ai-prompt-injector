@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(find:*)",
+      "Bash(sort:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:extensionworkshop.com)",
+      "WebSearch",
+      "Bash(npm test:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(npm install:*)"
     ],
     "deny": []
   }

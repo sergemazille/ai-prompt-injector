@@ -33,6 +33,7 @@ class PromptManager {
       'import-btn': () => this.toggleImportMode(),
       'browse-btn': () => this.importPrompts(),
       'import-from-paste': () => this.importFromPaste(),
+      'backups-btn': () => this.toggleBackupPanel(),
     };
 
     for (const [id, handler] of Object.entries(elements)) {
@@ -545,6 +546,9 @@ class PromptManager {
       console.log('File content read, length:', text.length);
       console.log('File content preview:', text.substring(0, 200) + '...');
 
+      // Create backup before importing
+      await promptStorage.createBackup('pre-import');
+
       console.log('Calling importPrompts...');
       const result = await promptStorage.importPrompts(text);
       console.log('Import result:', result);
@@ -599,33 +603,116 @@ class PromptManager {
       console.log('Active tab ID:', tabId, 'URL:', tabs[0].url);
 
       try {
-        const response = await browser.tabs.sendMessage(tabId, {
-          action: 'insertPrompt',
-          text: prompt.template
+        // Step 1: Deposit text in a global before content.js runs
+        await browser.scripting.executeScript({
+          target: { tabId },
+          func: (text) => { window._aiPromptPending = text; },
+          args: [prompt.template]
         });
 
-        console.log('Message response:', response);
+        // Step 2: Load content.js which processes _aiPromptPending
+        await browser.scripting.executeScript({
+          target: { tabId },
+          files: ['content.js']
+        });
 
-        if (response && response.success) {
-          if (response.fallback === 'clipboard') {
-            console.log('Insertion fell back to clipboard');
-          } else {
-            console.log('Prompt inserted successfully');
-          }
-          window.close();
-        } else {
-          throw new Error(response?.error || 'Unknown insertion error');
-        }
-      } catch (error) {
-        console.error('Message sending failed:', error);
-
-        await this.copyToClipboard(prompt.template);
-        console.log('Could not communicate with page. Content copied to clipboard instead.');
         window.close();
+      } catch (error) {
+        // Page restreinte (about:, moz-extension:, etc.)
+        console.error('Script execution failed:', error);
+        await this.copyToClipboard(prompt.template);
+        this.showNotification('Cannot inject here. Prompt copied to clipboard.');
       }
     } catch (error) {
       console.error('Error inserting prompt:', error);
       console.log('Error inserting prompt: ' + error.message);
+    }
+  }
+
+  async toggleBackupPanel() {
+    const panel = document.getElementById('backup-panel');
+    const promptList = document.getElementById('prompt-list');
+
+    if (panel.classList.contains('hidden')) {
+      // Close import mode if open
+      const dropZone = document.getElementById('drop-zone');
+      if (dropZone && !dropZone.classList.contains('hidden')) {
+        this.toggleImportMode();
+      }
+
+      panel.classList.remove('hidden');
+      promptList.style.display = 'none';
+      document.getElementById('backups-btn').textContent = 'Cancel';
+      await this.loadBackups();
+    } else {
+      panel.classList.add('hidden');
+      promptList.style.display = '';
+      document.getElementById('backups-btn').textContent = 'Backups';
+    }
+  }
+
+  async loadBackups() {
+    const backups = await promptStorage.getBackups();
+    const listEl = document.getElementById('backup-list');
+    const emptyEl = document.getElementById('backup-empty');
+
+    listEl.innerHTML = '';
+
+    if (backups.length === 0) {
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    emptyEl.classList.add('hidden');
+
+    const reasonLabels = {
+      'startup': 'Startup',
+      'update': 'Extension update',
+      'pre-import': 'Before import',
+      'pre-restore': 'Before restore',
+      'manual': 'Manual'
+    };
+
+    backups.forEach(backup => {
+      const item = document.createElement('div');
+      item.className = 'backup-item';
+
+      const info = document.createElement('div');
+      info.className = 'backup-item-info';
+
+      const dateEl = document.createElement('div');
+      dateEl.className = 'backup-item-date';
+      dateEl.textContent = new Date(backup.timestamp).toLocaleString();
+
+      const metaEl = document.createElement('div');
+      metaEl.className = 'backup-item-meta';
+      metaEl.textContent = `${backup.promptCount} prompts — ${reasonLabels[backup.reason] || backup.reason}`;
+
+      info.appendChild(dateEl);
+      info.appendChild(metaEl);
+
+      const restoreBtn = document.createElement('button');
+      restoreBtn.textContent = 'Restore';
+      restoreBtn.addEventListener('click', () => this.restoreBackup(backup.id));
+
+      item.appendChild(info);
+      item.appendChild(restoreBtn);
+      listEl.appendChild(item);
+    });
+  }
+
+  async restoreBackup(backupId) {
+    if (!confirm('Restore this backup? Your current prompts will be saved as a backup first.')) return;
+
+    try {
+      const result = await promptStorage.restoreBackup(backupId);
+      this.showNotification(`${result.restored} prompts restored`);
+      await this.loadPrompts();
+      await this.loadTags();
+      await this.loadBackups();
+    } catch (error) {
+      console.error('Error restoring backup:', error);
+      this.showNotification('Error restoring backup');
     }
   }
 
