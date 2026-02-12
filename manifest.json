@@ -36,7 +36,10 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "ai-prompt-injector@fun-web.dev",
-      "strict_min_version": "112.0"
+      "strict_min_version": "112.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "homepage_url": "https://github.com/sergemazille/ai-prompt-injector#privacy"

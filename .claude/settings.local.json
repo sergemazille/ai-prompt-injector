@@ -11,7 +11,9 @@
       "Bash(npx vitest run:*)",
       "Bash(npm install:*)",
       "Bash(grep:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(npx web-ext:*)",
+      "Bash(python3:*)"
     ],
     "deny": []
   }
