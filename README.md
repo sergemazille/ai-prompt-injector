@@ -1,108 +1,111 @@
-# AI Prompt Injector - Browser Extension
+# AI Prompt Injector
 
-A minimalist browser extension to manage and insert prompts into AI chat interfaces.
+Manage and insert prompts into any AI chat interface — Firefox extension.
 
-![AI Prompt Injector](screenshots/AI%20Prompt%20Injector.jpg)
-
-## Features
-
-- **Prompt Management**: Create, edit, delete and organize your prompts
-- **Favorites System**: Mark important prompts as favorites for priority display
-- **Real-time Search**: Instantly search through your prompt collection
-- **Tags**: Organize your prompts with tags and filter by tag
-- **Universal Insertion**: Automatically insert into ChatGPT, Claude, Gemini, Mistral, Grok, Perplexity, DeepSeek and others
-- **Import/Export**: Save and share your prompt collection in JSON format
-- **Clipboard Fallback**: Automatic copy if DOM insertion fails
+![AI Prompt Injector](screenshots/light-theme.png)
+![AI Prompt Injector - dark theme](screenshots/dark-theme.png)
 
 ## Installation
 
-### Manual Installation (Development)
+### Firefox Add-ons (recommended)
 
-#### Firefox
-1. Clone or download this project
+Install from [Firefox Add-ons (AMO)](https://addons.mozilla.org/en-US/firefox/addon/ai-prompt-injector/).
+
+### Manual (development)
+
+1. Clone or download this repository
 2. Open Firefox and go to `about:debugging`
 3. Click "This Firefox" in the left menu
 4. Click "Load Temporary Add-on..."
-5. Select the `manifest.json` file in the project folder
-6. The extension appears in the Firefox toolbar
+5. Select the `manifest.json` file from the project folder
 
-**Important**: After installation, refresh open web pages for the content script to load.
+## Features
 
-### Usage
+- **Prompt management** — create, edit, delete, and mark prompts as favorites
+- **Tag system** — organize prompts with tags; autocomplete with keyboard navigation (arrows, Enter, Tab, Escape)
+- **Real-time search** — filter prompts instantly by text or tag
+- **Universal injection** — works on any website via on-demand script injection (`activeTab` + `scripting`)
+  - 3-tier insertion: direct DOM → `execCommand('insertText')` → clipboard fallback (with warning)
+- **Optimized selectors** for popular AI platforms: ChatGPT, Claude, Gemini, Mistral, DeepSeek, Grok, Qwen, Dust, NotebookLM, Google AI Studio — plus any site with a textarea or contenteditable field
+- **Import/Export** — JSON format with flexible field mapping (accepts `label`/`title`/`name`, `template`/`content`/`text`, etc.)
+- **Automatic backups** — on browser startup, extension update, and before each import (max 3, 1h anti-spam); restore from popup UI
+- **i18n** — English and French
+- **Theme toggle** — auto / light / dark
+- **Accessibility** — `aria-label` on interactive elements, `aria-live` notifications, keyboard navigation
+- **Privacy-first** — all data stored locally, zero tracking, no network requests
 
-1. Click the "AI Prompt Injector" icon in the toolbar
-2. Create your first prompts with "New Prompt"
-3. Organize with tags (separated by commas)
-4. On an AI chat page, click "Insert" to insert the prompt
-5. Use the "Debug" button to diagnose insertion issues
-6. Use Import/Export to save your collection
+## Usage
 
-### Troubleshooting
+1. Click the extension icon in the toolbar
+2. Create prompts with "New Prompt" and organize them with tags
+3. Navigate to any AI chat page
+4. Click "Insert" on a prompt to inject it into the chat input
 
-If insertion doesn't work:
+## Data format
 
-1. **Refresh the page**: The content script must be loaded
-2. **Use the "Debug" button**: Check if an input field is detected
-3. **Check permissions**: The extension requires authorization on all sites
-4. **Check the console**: Open developer tools (F12) to see errors
-
-## File Structure
-
-```
-├── manifest.json          # Extension configuration
-├── popup.html             # User interface
-├── popup.css              # Styles
-├── popup.js               # Interface logic
-├── storage.js             # Storage management
-├── content.js             # Page injection script
-
-├── background.js          # Background script
-├── icons/                 # Extension icons
-│   ├── icon16.png         # 16x16 icon
-│   ├── icon48.png         # 48x48 icon
-│   └── icon128.png        # 128x128 icon
-├── CLAUDE.md              # Development instructions
-└── README.md              # Documentation
-```
-
-## Data Format
-
-Prompts are stored in JSON format:
+Prompts are stored as JSON:
 
 ```json
 {
-  "id": "prompt_123456789_abc",
+  "id": "prompt_1234567890_abc123def",
   "label": "Prompt title",
   "template": "Prompt content",
-  "tags": ["tag1", "tag2"]
+  "tags": ["tag1", "tag2"],
+  "favorite": false,
+  "createdAt": 1234567890
 }
 ```
 
-## Compatibility
+The import system accepts various JSON structures and field names — see `storage.js` for the full mapping.
 
-- Firefox MV3
-- Supported sites by default:
-  - ChatGPT (chat.openai.com)
-  - Claude (claude.ai)
-  - Gemini (gemini.google.com)
-  - Mistral (chat.mistral.ai)
-  - Grok (grok.x.ai)
-  - Perplexity (www.perplexity.ai)
-  - DeepSeek (chat.deepseek.com)
-  - Poe (poe.com)
-  - LMSYS Chat (chat.lmsys.org)
-  - And all other sites with textarea or contenteditable
+## Project structure
+
+```
+├── manifest.json          # Extension configuration (Manifest V3)
+├── popup.html             # Popup UI
+├── popup.css              # Styles with CSS custom properties and dark mode
+├── popup.js               # PromptManager class — UI logic
+├── storage.js             # PromptStorage class — CRUD, import/export, backups
+├── content.js             # PromptInjector — DOM injection with domain selectors
+├── background.js          # Auto-backup on startup and update
+├── i18n.js                # Internationalization (en, fr)
+├── icons/                 # Extension icons (16–128px)
+├── screenshots/           # AMO listing screenshot
+├── tests/                 # Unit tests (Vitest + happy-dom)
+├── vitest.config.js       # Test configuration
+├── build-firefox.sh       # Build script for AMO submission
+├── CHANGELOG.md           # Version history
+├── PRIVACY.md             # Privacy policy
+├── TESTING.md             # Test documentation
+└── LICENSE                # MIT
+```
 
 ## Permissions
 
-- `activeTab`: Access to active tab for insertion
-- `storage`: Local storage of prompts
-- `scripting`: Script injection for DOM insertion
+| Permission   | Purpose                                              |
+|--------------|------------------------------------------------------|
+| `activeTab`  | Access the current tab only when the user clicks Insert |
+| `storage`    | Store prompts and settings locally                   |
+| `scripting`  | Inject the content script on demand                  |
 
-See our [Privacy Policy](PRIVACY.md) for detailed information about data handling and permissions.
+No `host_permissions`. No `content_scripts`. No remote code.
 
 ## Development
 
-The extension uses the standard WebExtensions API, compatible with Firefox MV3. No external dependencies required.
+No external runtime dependencies. Dev dependencies are for testing only.
 
-To modify DOM selectors by site, edit the `domainSelectors` object in `content.js`.
+```bash
+npm test              # Run tests in watch mode
+npm run test:run      # Single test run
+npm run test:coverage # Run with coverage report
+```
+
+To update DOM selectors for AI platforms, edit the `domainSelectors` object in `content.js`.
+
+## Privacy
+
+All data is stored locally in `browser.storage.local`. The extension makes no network requests and collects no data. See [PRIVACY.md](PRIVACY.md) for details.
+
+## License
+
+[MIT](LICENSE)
