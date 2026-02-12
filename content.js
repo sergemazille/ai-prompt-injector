@@ -206,7 +206,7 @@ window.showNotification = function(message, type = 'info', duration = 4000) {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+    background: ${type === 'error' ? '#EF4444' : type === 'success' ? '#10B981' : type === 'warning' ? '#F59E0B' : '#3B82F6'};
     color: white;
     padding: 12px 20px;
     border-radius: 6px;

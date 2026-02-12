@@ -3,6 +3,8 @@ class PromptManager {
     this.currentEditId = null;
     this.currentFilter = '';
     this.currentSearchFilter = '';
+    this.allTags = [];
+    this.activeAutocompleteIndex = -1;
     this.init();
   }
 
@@ -10,6 +12,7 @@ class PromptManager {
     this.bindEvents();
     await this.loadPrompts();
     await this.loadTags();
+    this.allTags = await promptStorage.getAllTags();
 
     // Auto-focus search input when popup opens
     setTimeout(() => {
@@ -59,6 +62,36 @@ class PromptManager {
     }
 
     console.log('All events bound');
+
+    // Setup tag autocomplete events
+    const tagsInput = document.getElementById('prompt-tags');
+    if (tagsInput) {
+      tagsInput.addEventListener('input', () => this.handleTagInput());
+      tagsInput.addEventListener('keydown', (e) => this.handleTagKeydown(e));
+      tagsInput.addEventListener('focus', () => this.handleTagInput());
+      tagsInput.addEventListener('blur', () => {
+        setTimeout(() => this.hideTagSuggestions(), 150);
+      });
+    }
+
+    const suggestionsEl = document.getElementById('tag-suggestions');
+    if (suggestionsEl) {
+      suggestionsEl.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.tag-suggestion-item');
+        if (item) {
+          e.preventDefault();
+          this.selectTagSuggestion(item.dataset.tag);
+        }
+      });
+    }
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      const wrapper = document.querySelector('.tag-input-wrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        this.hideTagSuggestions();
+      }
+    });
 
     // Setup drag and drop for import
     this.setupDragAndDrop();
@@ -157,7 +190,7 @@ class PromptManager {
     const jsonText = textarea.value.trim();
 
     if (!jsonText) {
-      this.showNotification('Please paste JSON content first');
+      this.showNotification('Please paste JSON content first', 'warning');
       return;
     }
 
@@ -183,7 +216,10 @@ class PromptManager {
     }
   }
 
-  showForm(promptId = null) {
+  async showForm(promptId = null) {
+    // Refresh autocomplete tag cache
+    this.allTags = await promptStorage.getAllTags();
+
     this.currentEditId = promptId;
     const form = document.getElementById('prompt-form');
     const title = document.getElementById('form-title');
@@ -279,6 +315,9 @@ class PromptManager {
         if (tag === currentValue) option.selected = true;
         select.appendChild(option);
       });
+
+      // Update autocomplete cache
+      this.allTags = tags;
     } catch (error) {
       console.error('Error loading tags:', error);
     }
@@ -346,7 +385,9 @@ class PromptManager {
     const star = document.createElement('span');
     star.className = prompt.favorite ? 'favorite-star favorited' : 'favorite-star';
     star.dataset.id = prompt.id;
-    star.title = prompt.favorite ? 'Remove from favorites' : 'Add to favorites';
+    star.setAttribute('role', 'button');
+    star.setAttribute('tabindex', '0');
+    star.setAttribute('aria-label', prompt.favorite ? `Remove ${prompt.label} from favorites` : `Add ${prompt.label} to favorites`);
     star.textContent = prompt.favorite ? '★' : '☆';
 
     header.appendChild(title);
@@ -360,6 +401,9 @@ class PromptManager {
         const tagSpan = document.createElement('span');
         tagSpan.className = 'tag';
         tagSpan.dataset.tag = tag;
+        tagSpan.setAttribute('role', 'button');
+        tagSpan.setAttribute('tabindex', '0');
+        tagSpan.setAttribute('aria-label', `Filter by tag: ${tag}`);
         tagSpan.textContent = tag;
         tagsContainer.appendChild(tagSpan);
       });
@@ -370,10 +414,10 @@ class PromptManager {
     actions.className = 'prompt-actions';
 
     const buttons = [
-      { class: 'insert-btn', text: 'Insert' },
-      { class: 'copy-btn', text: 'Copy' },
-      { class: 'edit-btn', text: 'Edit' },
-      { class: 'delete-btn', text: 'Delete' }
+      { class: 'insert-btn btn btn--success btn--sm', text: 'Insert', ariaLabel: `Insert prompt: ${prompt.label}` },
+      { class: 'copy-btn btn btn--primary btn--sm', text: 'Copy', ariaLabel: `Copy prompt: ${prompt.label}` },
+      { class: 'edit-btn btn btn--sm', text: 'Edit', ariaLabel: `Edit prompt: ${prompt.label}` },
+      { class: 'delete-btn btn btn--danger btn--sm', text: 'Delete', ariaLabel: `Delete prompt: ${prompt.label}` }
     ];
 
     buttons.forEach(btnConfig => {
@@ -381,6 +425,7 @@ class PromptManager {
       button.className = btnConfig.class;
       button.dataset.id = prompt.id;
       button.textContent = btnConfig.text;
+      button.setAttribute('aria-label', btnConfig.ariaLabel);
       actions.appendChild(button);
     });
 
@@ -392,37 +437,6 @@ class PromptManager {
     return promptItem;
   }
 
-  createPromptElement(prompt) {
-    const tagsHtml = prompt.tags && prompt.tags.length > 0
-      ? prompt.tags.map(tag => `<span class="tag" data-tag="${tag}">${tag}</span>`).join('')
-      : '';
-
-    const starIcon = prompt.favorite ? '★' : '☆';
-    const starClass = prompt.favorite ? 'favorite-star favorited' : 'favorite-star';
-
-    return `
-      <div class="prompt-item" data-id="${prompt.id}">
-        <div class="prompt-header">
-          <h3 class="prompt-title">${this.escapeHtml(prompt.label)}</h3>
-          <span class="${starClass}" data-id="${prompt.id}" title="${prompt.favorite ? 'Remove from favorites' : 'Add to favorites'}">${starIcon}</span>
-        </div>
-        <div class="prompt-tags">${tagsHtml}</div>
-        <div class="prompt-actions">
-          <button class="insert-btn" data-id="${prompt.id}">Insert</button>
-          <button class="copy-btn" data-id="${prompt.id}">Copy</button>
-          <button class="edit-btn" data-id="${prompt.id}">Edit</button>
-          <button class="delete-btn" data-id="${prompt.id}">Delete</button>
-        </div>
-      </div>
-    `;
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
   async filterPrompts(tag) {
     this.currentFilter = tag;
     await this.loadPrompts();
@@ -431,6 +445,158 @@ class PromptManager {
   async searchPrompts(searchTerm) {
     this.currentSearchFilter = searchTerm.toLowerCase().trim();
     await this.loadPrompts();
+  }
+
+  handleTagInput() {
+    const input = document.getElementById('prompt-tags');
+    const value = input.value;
+
+    // Extract the current tag being typed (text after the last comma)
+    const lastCommaIndex = value.lastIndexOf(',');
+    const currentFragment = value.substring(lastCommaIndex + 1).trim().toLowerCase();
+
+    // Get tags already entered in the input (everything before the current fragment)
+    const enteredTags = value.substring(0, lastCommaIndex + 1)
+      .split(',')
+      .map(t => t.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!currentFragment) {
+      this.hideTagSuggestions();
+      return;
+    }
+
+    // Filter: match against allTags, exclude already-entered tags, case-insensitive
+    const matches = this.allTags.filter(tag => {
+      const tagLower = tag.toLowerCase();
+      return tagLower.includes(currentFragment) && !enteredTags.includes(tagLower);
+    });
+
+    if (matches.length === 0) {
+      this.hideTagSuggestions();
+      return;
+    }
+
+    this.showTagSuggestions(matches, currentFragment);
+  }
+
+  showTagSuggestions(matches, fragment) {
+    const container = document.getElementById('tag-suggestions');
+    container.innerHTML = '';
+    this.activeAutocompleteIndex = -1;
+
+    matches.forEach(tag => {
+      const item = document.createElement('div');
+      item.className = 'tag-suggestion-item';
+      item.dataset.tag = tag;
+      item.setAttribute('role', 'option');
+
+      // Highlight the matching portion
+      const tagLower = tag.toLowerCase();
+      const matchIndex = tagLower.indexOf(fragment);
+      if (matchIndex !== -1) {
+        const before = tag.substring(0, matchIndex);
+        const match = tag.substring(matchIndex, matchIndex + fragment.length);
+        const after = tag.substring(matchIndex + fragment.length);
+        item.innerHTML = '';
+        if (before) item.appendChild(document.createTextNode(before));
+        const bold = document.createElement('span');
+        bold.className = 'tag-match';
+        bold.textContent = match;
+        item.appendChild(bold);
+        if (after) item.appendChild(document.createTextNode(after));
+      } else {
+        item.textContent = tag;
+      }
+
+      container.appendChild(item);
+    });
+
+    container.classList.remove('hidden');
+  }
+
+  hideTagSuggestions() {
+    const container = document.getElementById('tag-suggestions');
+    container.classList.add('hidden');
+    container.innerHTML = '';
+    this.activeAutocompleteIndex = -1;
+  }
+
+  selectTagSuggestion(tag) {
+    const input = document.getElementById('prompt-tags');
+    const value = input.value;
+    const lastCommaIndex = value.lastIndexOf(',');
+
+    // Build the new value: everything before the last comma + selected tag + ", "
+    const prefix = lastCommaIndex !== -1
+      ? value.substring(0, lastCommaIndex + 1) + ' '
+      : '';
+
+    input.value = prefix + tag + ', ';
+    input.focus();
+    this.hideTagSuggestions();
+  }
+
+  handleTagKeydown(e) {
+    const container = document.getElementById('tag-suggestions');
+    if (container.classList.contains('hidden')) return;
+
+    const items = container.querySelectorAll('.tag-suggestion-item');
+    if (items.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        this.activeAutocompleteIndex = Math.min(
+          this.activeAutocompleteIndex + 1,
+          items.length - 1
+        );
+        this.updateAutocompleteHighlight(items);
+        break;
+
+      case 'ArrowUp':
+        e.preventDefault();
+        this.activeAutocompleteIndex = Math.max(
+          this.activeAutocompleteIndex - 1,
+          -1
+        );
+        this.updateAutocompleteHighlight(items);
+        break;
+
+      case 'Enter':
+        if (this.activeAutocompleteIndex >= 0 && this.activeAutocompleteIndex < items.length) {
+          e.preventDefault();
+          const selectedTag = items[this.activeAutocompleteIndex].dataset.tag;
+          this.selectTagSuggestion(selectedTag);
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        this.hideTagSuggestions();
+        break;
+
+      case 'Tab':
+        if (this.activeAutocompleteIndex >= 0 && this.activeAutocompleteIndex < items.length) {
+          e.preventDefault();
+          const selectedTag = items[this.activeAutocompleteIndex].dataset.tag;
+          this.selectTagSuggestion(selectedTag);
+        } else {
+          this.hideTagSuggestions();
+        }
+        break;
+    }
+  }
+
+  updateAutocompleteHighlight(items) {
+    items.forEach((item, index) => {
+      if (index === this.activeAutocompleteIndex) {
+        item.classList.add('active');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('active');
+      }
+    });
   }
 
   async exportPrompts() {
@@ -492,7 +658,7 @@ class PromptManager {
 
     if (!importFile) {
       console.error('Import file element not found!');
-      this.showNotification('Error: import-file element not found');
+      this.showNotification('Error: import-file element not found', 'error');
       return;
     }
 
@@ -536,7 +702,7 @@ class PromptManager {
       // Check file type
       if (!file.name.toLowerCase().endsWith('.json')) {
         console.log('File is not JSON format');
-        this.showNotification('Please select a JSON file');
+        this.showNotification('Please select a JSON file', 'warning');
         e.target.value = '';
         return;
       }
@@ -554,7 +720,7 @@ class PromptManager {
       console.log('Import result:', result);
 
       if (result.imported === 0) {
-        this.showNotification('No new prompts imported');
+        this.showNotification('No new prompts imported', 'info');
         console.log('No prompts were imported');
       } else if (result.imported === result.total) {
         this.showNotification(`${result.imported} prompts imported successfully!`);
@@ -577,7 +743,7 @@ class PromptManager {
     } catch (error) {
       console.error('Error importing prompts:', error);
       console.error('Error stack:', error.stack);
-      this.showNotification(`Import error: ${error.message}`);
+      this.showNotification(`Import error: ${error.message}`, 'error');
     }
 
     e.target.value = '';
@@ -621,7 +787,7 @@ class PromptManager {
         // Page restreinte (about:, moz-extension:, etc.)
         console.error('Script execution failed:', error);
         await this.copyToClipboard(prompt.template);
-        this.showNotification('Cannot inject here. Prompt copied to clipboard.');
+        this.showNotification('Cannot inject here. Prompt copied to clipboard.', 'warning');
       }
     } catch (error) {
       console.error('Error inserting prompt:', error);
@@ -712,20 +878,27 @@ class PromptManager {
       await this.loadBackups();
     } catch (error) {
       console.error('Error restoring backup:', error);
-      this.showNotification('Error restoring backup');
+      this.showNotification('Error restoring backup', 'error');
     }
   }
 
-  showNotification(message) {
+  showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     const notificationText = document.getElementById('notification-text');
+
+    // Remove previous type classes
+    notification.classList.remove('notification--error', 'notification--warning', 'notification--info');
+    if (type !== 'success') {
+      notification.classList.add(`notification--${type}`);
+    }
 
     notificationText.textContent = message;
     notification.classList.remove('hidden');
 
+    const duration = type === 'warning' ? 6000 : 4000;
     setTimeout(() => {
       notification.classList.add('hidden');
-    }, 2000);
+    }, duration);
   }
 
   async copyToClipboard(text) {
@@ -751,7 +924,7 @@ class PromptManager {
       console.log('Prompt copied to clipboard:', prompt.label);
     } catch (error) {
       console.error('Error copying prompt to clipboard:', error);
-      this.showNotification('Error copying prompt');
+      this.showNotification('Error copying prompt', 'error');
     }
   }
 
@@ -790,7 +963,7 @@ class PromptManager {
       this.showNotification(message);
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      this.showNotification('Error updating favorite status');
+      this.showNotification('Error updating favorite status', 'error');
     }
   }
 }
@@ -832,6 +1005,23 @@ document.addEventListener('DOMContentLoaded', () => {
         : e.target.closest('.prompt-item');
       const promptId = promptItem.dataset.id;
       await manager.insertPrompt(promptId);
+    }
+  });
+
+  // Keyboard support for interactive non-button elements (stars, tags)
+  document.addEventListener('keydown', async (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+
+    if (e.target.classList.contains('favorite-star')) {
+      e.preventDefault();
+      e.stopPropagation();
+      const promptId = e.target.dataset.id;
+      await manager.toggleFavorite(promptId);
+    } else if (e.target.classList.contains('tag')) {
+      e.preventDefault();
+      const tag = e.target.dataset.tag;
+      document.getElementById('tag-filter').value = tag;
+      await manager.filterPrompts(tag);
     }
   });
 });
