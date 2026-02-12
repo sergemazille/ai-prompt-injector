@@ -13,10 +13,10 @@
         <h1>AI Prompt Injector</h1>
       </div>
       <div class="header-actions">
-        <button id="import-btn" title="Import prompts">Import</button>
-        <button id="export-btn" title="Export prompts">Export</button>
-        <button id="backups-btn" title="Manage backups">Backups</button>
-        <button id="new-prompt-btn">New Prompt</button>
+        <button id="import-btn" class="btn" aria-label="Import prompts">Import</button>
+        <button id="export-btn" class="btn" aria-label="Export prompts">Export</button>
+        <button id="backups-btn" class="btn" aria-label="Manage backups">Backups</button>
+        <button id="new-prompt-btn" class="btn btn--primary" aria-label="Create new prompt">New Prompt</button>
       </div>
     </header>
 
@@ -31,14 +31,14 @@
           
           <div class="import-method">
             <h4>Method 2: Browse</h4>
-            <p><button id="browse-btn">Select a file</button></p>
+            <p><button id="browse-btn" class="btn btn--primary">Select a file</button></p>
           </div>
           
           <div class="import-method">
             <h4>Method 3: Paste JSON</h4>
             <textarea id="paste-json" placeholder="Paste your JSON here (Ctrl+V)" rows="4"></textarea>
             <div class="paste-actions">
-              <button id="import-from-paste">Import</button>
+              <button id="import-from-paste" class="btn btn--success">Import</button>
             </div>
             <small class="paste-help">💡 Tip: You can paste directly with Ctrl+V in the text area</small>
           </div>
@@ -60,9 +60,9 @@
     <div class="filter-section">
       <div class="search-container">
         <input type="search" id="search-input" placeholder="Search prompts..." />
-        <div class="search-icon">🔍</div>
+        <div class="search-icon" aria-hidden="true">🔍</div>
       </div>
-      <select id="tag-filter">
+      <select id="tag-filter" aria-label="Filter prompts by tag">
         <option value="">All tags</option>
       </select>
     </div>
@@ -83,12 +83,15 @@
         
         <div class="form-group">
           <label for="prompt-tags">Tags (comma-separated):</label>
-          <input type="text" id="prompt-tags" placeholder="tag1, tag2, tag3">
+          <div class="tag-input-wrapper">
+            <input type="text" id="prompt-tags" placeholder="tag1, tag2, tag3" autocomplete="off">
+            <div id="tag-suggestions" class="tag-suggestions hidden" role="listbox" aria-label="Tag suggestions"></div>
+          </div>
         </div>
         
         <div class="form-actions">
-          <button type="submit" id="save-btn">Save</button>
-          <button type="button" id="cancel-btn">Cancel</button>
+          <button type="submit" id="save-btn" class="btn btn--primary">Save</button>
+          <button type="button" id="cancel-btn" class="btn">Cancel</button>
         </div>
       </form>
     </div>
@@ -108,7 +111,7 @@
   <input type="file" id="import-file" accept=".json" style="display: none;">
 
   <!-- Notification -->
-  <div id="notification" class="notification hidden">
+  <div id="notification" class="notification hidden" aria-live="polite">
     <span id="notification-text"></span>
   </div>
 
