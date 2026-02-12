@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.0
+
+### Added
+- Dark mode support via `prefers-color-scheme` media query
+- CSS design tokens (custom properties) for colors, shadows, radii, and transitions
+- Tag autocomplete in prompt form with keyboard navigation (Arrow keys, Enter, Tab, Escape)
+- Accessibility: `aria-label` on interactive elements, `aria-live` on notifications, `role` and `tabindex` on stars and tags, keyboard support (Enter/Space) for non-button interactive elements
+- Typed notifications (`success`, `error`, `warning`, `info`) with matching colors and durations
+- BEM-style button system (`.btn`, `.btn--primary`, `.btn--success`, `.btn--danger`)
+
+### Changed
+- Popup UI restyled: gradient title, colored top-border on prompt cards, slide-in notifications (top-right), improved tag pills
+- Responsive prompt grid (`auto-fill` instead of fixed 3 columns)
+- Replaced all hardcoded colors with CSS custom properties
+
+### Removed
+- Dead code: `createPromptElement()` (innerHTML-based) and `escapeHtml()` helper
+
 ## 1.2.0
 
 ### Changed
