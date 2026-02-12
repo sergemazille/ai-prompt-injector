@@ -9,6 +9,8 @@ class PromptManager {
   }
 
   async init() {
+    applyI18nToDOM();
+    await this.initTheme();
     this.bindEvents();
     await this.loadPrompts();
     await this.loadTags();
@@ -24,8 +26,6 @@ class PromptManager {
   }
 
   bindEvents() {
-    console.log('Binding events...');
-
     const elements = {
       'new-prompt-btn': () => this.showForm(),
       'cancel-btn': () => this.hideForm(),
@@ -37,14 +37,13 @@ class PromptManager {
       'browse-btn': () => this.importPrompts(),
       'import-from-paste': () => this.importFromPaste(),
       'backups-btn': () => this.toggleBackupPanel(),
+      'theme-toggle': () => this.cycleTheme(),
     };
 
     for (const [id, handler] of Object.entries(elements)) {
       const element = document.getElementById(id);
-      console.log(`Element ${id}:`, element);
 
       if (!element) {
-        console.error(`Element with id '${id}' not found!`);
         continue;
       }
 
@@ -58,10 +57,7 @@ class PromptManager {
         element.addEventListener('click', handler);
       }
 
-      console.log(`Event bound for ${id}`);
     }
-
-    console.log('All events bound');
 
     // Setup tag autocomplete events
     const tagsInput = document.getElementById('prompt-tags');
@@ -144,8 +140,36 @@ class PromptManager {
     });
   }
 
+  async initTheme() {
+    const { theme } = await browser.storage.local.get('theme');
+    this.applyTheme(theme || 'auto');
+  }
+
+  applyTheme(theme) {
+    this.currentTheme = theme;
+    const html = document.documentElement;
+    const btn = document.getElementById('theme-toggle');
+
+    if (theme === 'auto') {
+      html.removeAttribute('data-theme');
+      if (btn) btn.textContent = '🖥️';
+    } else if (theme === 'light') {
+      html.setAttribute('data-theme', 'light');
+      if (btn) btn.textContent = '☀️';
+    } else {
+      html.setAttribute('data-theme', 'dark');
+      if (btn) btn.textContent = '🌙';
+    }
+  }
+
+  async cycleTheme() {
+    const order = ['auto', 'light', 'dark'];
+    const next = order[(order.indexOf(this.currentTheme) + 1) % order.length];
+    this.applyTheme(next);
+    await browser.storage.local.set({ theme: next });
+  }
+
   toggleImportMode() {
-    console.log('Toggling import mode');
     const dropZone = document.getElementById('drop-zone');
     const promptList = document.getElementById('prompt-list');
 
@@ -153,7 +177,7 @@ class PromptManager {
       // Show drop zone
       dropZone.classList.remove('hidden');
       promptList.style.display = 'none';
-      document.getElementById('import-btn').textContent = 'Cancel';
+      document.getElementById('import-btn').textContent = t('btn.cancel');
       // Clear previous paste content
       const textarea = document.getElementById('paste-json');
       textarea.value = '';
@@ -171,7 +195,7 @@ class PromptManager {
       // Hide drop zone  
       dropZone.classList.add('hidden');
       promptList.style.display = '';  // Reset to use CSS default (grid)
-      document.getElementById('import-btn').textContent = 'Import';
+      document.getElementById('import-btn').textContent = t('btn.import');
     }
   }
 
@@ -180,17 +204,17 @@ class PromptManager {
 
     // Firefox only - highlight paste method
     methods[2]?.classList.add('recommended');
+    methods[2]?.setAttribute('data-recommended-label', t('import.recommended'));
     methods[0]?.classList.remove('recommended');
   }
 
 
   async importFromPaste() {
-    console.log('Importing from pasted content');
     const textarea = document.getElementById('paste-json');
     const jsonText = textarea.value.trim();
 
     if (!jsonText) {
-      this.showNotification('Please paste JSON content first', 'warning');
+      this.showNotification(t('notify.pasteFirst'), 'warning');
       return;
     }
 
@@ -228,10 +252,10 @@ class PromptManager {
     const tagsInput = document.getElementById('prompt-tags');
 
     if (promptId) {
-      title.textContent = 'Edit Prompt';
+      title.textContent = t('form.editPrompt');
       this.loadPromptForEdit(promptId);
     } else {
-      title.textContent = 'New Prompt';
+      title.textContent = t('form.newPrompt');
       titleInput.value = '';
       contentInput.value = '';
       tagsInput.value = '';
@@ -267,7 +291,7 @@ class PromptManager {
     const tagsInput = document.getElementById('prompt-tags').value.trim();
 
     if (!title || !content) {
-      alert('Title and content are required');
+      alert(t('alert.titleContentRequired'));
       return;
     }
 
@@ -287,7 +311,7 @@ class PromptManager {
       await this.loadTags();
     } catch (error) {
       console.error('Error saving prompt:', error);
-      alert('Error saving prompt. Please try again.');
+      alert(t('alert.saveError'));
     }
   }
 
@@ -306,7 +330,11 @@ class PromptManager {
       const select = document.getElementById('tag-filter');
       const currentValue = select.value;
 
-      select.innerHTML = '<option value="">All tags</option>';
+      select.textContent = '';
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '';
+      defaultOpt.textContent = t('filter.allTags');
+      select.appendChild(defaultOpt);
 
       tags.forEach(tag => {
         const option = document.createElement('option');
@@ -355,7 +383,7 @@ class PromptManager {
       container.innerHTML = '';
       const noResults = document.createElement('div');
       noResults.className = 'no-results';
-      noResults.textContent = 'No prompts match the current filter.';
+      noResults.textContent = t('filter.noResults');
       container.appendChild(noResults);
       return;
     }
@@ -387,7 +415,7 @@ class PromptManager {
     star.dataset.id = prompt.id;
     star.setAttribute('role', 'button');
     star.setAttribute('tabindex', '0');
-    star.setAttribute('aria-label', prompt.favorite ? `Remove ${prompt.label} from favorites` : `Add ${prompt.label} to favorites`);
+    star.setAttribute('aria-label', prompt.favorite ? t('aria.removeFavorite', prompt.label) : t('aria.addFavorite', prompt.label));
     star.textContent = prompt.favorite ? '★' : '☆';
 
     header.appendChild(title);
@@ -403,7 +431,7 @@ class PromptManager {
         tagSpan.dataset.tag = tag;
         tagSpan.setAttribute('role', 'button');
         tagSpan.setAttribute('tabindex', '0');
-        tagSpan.setAttribute('aria-label', `Filter by tag: ${tag}`);
+        tagSpan.setAttribute('aria-label', t('aria.filterByTagValue', tag));
         tagSpan.textContent = tag;
         tagsContainer.appendChild(tagSpan);
       });
@@ -414,10 +442,10 @@ class PromptManager {
     actions.className = 'prompt-actions';
 
     const buttons = [
-      { class: 'insert-btn btn btn--success btn--sm', text: 'Insert', ariaLabel: `Insert prompt: ${prompt.label}` },
-      { class: 'copy-btn btn btn--primary btn--sm', text: 'Copy', ariaLabel: `Copy prompt: ${prompt.label}` },
-      { class: 'edit-btn btn btn--sm', text: 'Edit', ariaLabel: `Edit prompt: ${prompt.label}` },
-      { class: 'delete-btn btn btn--danger btn--sm', text: 'Delete', ariaLabel: `Delete prompt: ${prompt.label}` }
+      { class: 'insert-btn btn btn--success btn--sm', text: t('btn.insert'), ariaLabel: t('aria.insertPrompt', prompt.label) },
+      { class: 'copy-btn btn btn--primary btn--sm', text: t('btn.copy'), ariaLabel: t('aria.copyPrompt', prompt.label) },
+      { class: 'edit-btn btn btn--sm', text: t('btn.edit'), ariaLabel: t('aria.editPrompt', prompt.label) },
+      { class: 'delete-btn btn btn--danger btn--sm', text: t('btn.delete'), ariaLabel: t('aria.deletePrompt', prompt.label) }
     ];
 
     buttons.forEach(btnConfig => {
@@ -458,7 +486,7 @@ class PromptManager {
     // Get tags already entered in the input (everything before the current fragment)
     const enteredTags = value.substring(0, lastCommaIndex + 1)
       .split(',')
-      .map(t => t.trim().toLowerCase())
+      .map(s => s.trim().toLowerCase())
       .filter(Boolean);
 
     if (!currentFragment) {
@@ -614,17 +642,14 @@ class PromptManager {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting prompts:', error);
-      alert('Error exporting prompts. Please try again.');
+      alert(t('alert.exportError'));
     }
   }
 
   async importPrompts() {
-    console.log('Import button clicked');
-
     try {
       // Try modern File System Access API first
       if ('showOpenFilePicker' in window) {
-        console.log('Using File System Access API');
         const [fileHandle] = await window.showOpenFilePicker({
           types: [{
             description: 'JSON files',
@@ -635,7 +660,6 @@ class PromptManager {
         });
 
         const file = await fileHandle.getFile();
-        console.log('File selected via File System Access API:', file);
 
         // Create a fake event object to maintain compatibility
         const fakeEvent = {
@@ -648,17 +672,14 @@ class PromptManager {
         return;
       }
     } catch (error) {
-      console.log('File System Access API failed or cancelled:', error);
       // Fall through to traditional method
     }
 
     // Fallback to traditional input file method
-    console.log('Falling back to input file method');
     const importFile = document.getElementById('import-file');
 
     if (!importFile) {
-      console.error('Import file element not found!');
-      this.showNotification('Error: import-file element not found', 'error');
+      this.showNotification(t('notify.importElementError'), 'error');
       return;
     }
 
@@ -667,73 +688,47 @@ class PromptManager {
 
     // Add a temporary event listener for this specific import
     const handleFileSelect = async (e) => {
-      console.log('Temporary file handler called');
       importFile.removeEventListener('change', handleFileSelect);
       await this.handleImportFile(e);
     };
 
     importFile.addEventListener('change', handleFileSelect);
 
-    console.log('Triggering file dialog...');
     importFile.click();
   }
 
   async handleImportFile(e) {
-    console.log('handleImportFile called with event:', e);
-    console.log('Event target:', e.target);
-    console.log('Files:', e.target.files);
-
     const file = e.target.files[0];
-    console.log('Import file selected:', file);
 
     if (!file) {
-      console.log('No file selected');
       return;
     }
 
     try {
-      console.log('File details:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified
-      });
-
       // Check file type
       if (!file.name.toLowerCase().endsWith('.json')) {
-        console.log('File is not JSON format');
-        this.showNotification('Please select a JSON file', 'warning');
+        this.showNotification(t('notify.selectJson'), 'warning');
         e.target.value = '';
         return;
       }
 
-      console.log('Reading file content...');
       const text = await file.text();
-      console.log('File content read, length:', text.length);
-      console.log('File content preview:', text.substring(0, 200) + '...');
 
       // Create backup before importing
       await promptStorage.createBackup('pre-import');
 
-      console.log('Calling importPrompts...');
       const result = await promptStorage.importPrompts(text);
-      console.log('Import result:', result);
 
       if (result.imported === 0) {
-        this.showNotification('No new prompts imported', 'info');
-        console.log('No prompts were imported');
+        this.showNotification(t('notify.noNewImported'), 'info');
       } else if (result.imported === result.total) {
-        this.showNotification(`${result.imported} prompts imported successfully!`);
-        console.log(`Successfully imported all ${result.imported} prompts`);
+        this.showNotification(t('notify.importedAll', result.imported));
       } else {
-        this.showNotification(`${result.imported}/${result.total} prompts imported`);
-        console.log(`Partially imported ${result.imported} out of ${result.total} prompts`);
+        this.showNotification(t('notify.importedPartial', result.imported, result.total));
       }
 
-      console.log('Reloading prompts and tags...');
       await this.loadPrompts();
       await this.loadTags();
-      console.log('Import process completed');
 
       // Close import mode if it's open
       const dropZone = document.getElementById('drop-zone');
@@ -742,8 +737,7 @@ class PromptManager {
       }
     } catch (error) {
       console.error('Error importing prompts:', error);
-      console.error('Error stack:', error.stack);
-      this.showNotification(`Import error: ${error.message}`, 'error');
+      this.showNotification(t('notify.importError', error.message), 'error');
     }
 
     e.target.value = '';
@@ -753,27 +747,26 @@ class PromptManager {
     try {
       const prompt = await promptStorage.getPromptById(promptId);
       if (!prompt) {
-        console.error('Prompt not found:', promptId);
         return;
       }
 
-      console.log('Inserting prompt:', prompt.label);
-
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       if (tabs.length === 0) {
-        alert('No active tab found');
+        alert(t('alert.noActiveTab'));
         return;
       }
 
       const tabId = tabs[0].id;
-      console.log('Active tab ID:', tabId, 'URL:', tabs[0].url);
 
       try {
-        // Step 1: Deposit text in a global before content.js runs
+        // Step 1: Deposit text and locale in globals before content.js runs
         await browser.scripting.executeScript({
           target: { tabId },
-          func: (text) => { window._aiPromptPending = text; },
-          args: [prompt.template]
+          func: (text, locale) => {
+            window._aiPromptPending = text;
+            window._aiPromptLocale = locale;
+          },
+          args: [prompt.template, I18N_LOCALE]
         });
 
         // Step 2: Load content.js which processes _aiPromptPending
@@ -787,17 +780,17 @@ class PromptManager {
         // Page restreinte (about:, moz-extension:, etc.)
         console.error('Script execution failed:', error);
         await this.copyToClipboard(prompt.template);
-        this.showNotification('Cannot inject here. Prompt copied to clipboard.', 'warning');
+        this.showNotification(t('notify.cannotInject'), 'warning');
       }
     } catch (error) {
       console.error('Error inserting prompt:', error);
-      console.log('Error inserting prompt: ' + error.message);
     }
   }
 
   async toggleBackupPanel() {
     const panel = document.getElementById('backup-panel');
     const promptList = document.getElementById('prompt-list');
+    const filterSection = document.querySelector('.filter-section');
 
     if (panel.classList.contains('hidden')) {
       // Close import mode if open
@@ -806,14 +799,19 @@ class PromptManager {
         this.toggleImportMode();
       }
 
+      // Close form if open
+      this.hideForm();
+
       panel.classList.remove('hidden');
       promptList.style.display = 'none';
-      document.getElementById('backups-btn').textContent = 'Cancel';
+      filterSection.style.display = 'none';
+      document.getElementById('backups-btn').textContent = t('btn.cancel');
       await this.loadBackups();
     } else {
       panel.classList.add('hidden');
       promptList.style.display = '';
-      document.getElementById('backups-btn').textContent = 'Backups';
+      filterSection.style.display = '';
+      document.getElementById('backups-btn').textContent = t('btn.backups');
     }
   }
 
@@ -832,11 +830,11 @@ class PromptManager {
     emptyEl.classList.add('hidden');
 
     const reasonLabels = {
-      'startup': 'Startup',
-      'update': 'Extension update',
-      'pre-import': 'Before import',
-      'pre-restore': 'Before restore',
-      'manual': 'Manual'
+      'startup': t('backup.reason.startup'),
+      'update': t('backup.reason.update'),
+      'pre-import': t('backup.reason.preImport'),
+      'pre-restore': t('backup.reason.preRestore'),
+      'manual': t('backup.reason.manual')
     };
 
     backups.forEach(backup => {
@@ -858,7 +856,7 @@ class PromptManager {
       info.appendChild(metaEl);
 
       const restoreBtn = document.createElement('button');
-      restoreBtn.textContent = 'Restore';
+      restoreBtn.textContent = t('btn.restore');
       restoreBtn.addEventListener('click', () => this.restoreBackup(backup.id));
 
       item.appendChild(info);
@@ -868,17 +866,17 @@ class PromptManager {
   }
 
   async restoreBackup(backupId) {
-    if (!confirm('Restore this backup? Your current prompts will be saved as a backup first.')) return;
+    if (!confirm(t('confirm.restore'))) return;
 
     try {
       const result = await promptStorage.restoreBackup(backupId);
-      this.showNotification(`${result.restored} prompts restored`);
+      this.showNotification(t('notify.restored', result.restored));
       await this.loadPrompts();
       await this.loadTags();
       await this.loadBackups();
     } catch (error) {
       console.error('Error restoring backup:', error);
-      this.showNotification('Error restoring backup', 'error');
+      this.showNotification(t('notify.restoreError'), 'error');
     }
   }
 
@@ -904,7 +902,6 @@ class PromptManager {
   async copyToClipboard(text) {
     try {
       await navigator.clipboard.writeText(text);
-      console.log('Content copied to clipboard');
     } catch (error) {
       console.error('Clipboard write failed:', error);
     }
@@ -915,21 +912,19 @@ class PromptManager {
     try {
       const prompt = await promptStorage.getPromptById(promptId);
       if (!prompt) {
-        console.error('Prompt not found:', promptId);
         return;
       }
 
       await this.copyToClipboard(prompt.template);
-      this.showNotification('Prompt copied!');
-      console.log('Prompt copied to clipboard:', prompt.label);
+      this.showNotification(t('notify.copied'));
     } catch (error) {
       console.error('Error copying prompt to clipboard:', error);
-      this.showNotification('Error copying prompt', 'error');
+      this.showNotification(t('notify.copyError'), 'error');
     }
   }
 
   async deletePrompt(promptId) {
-    if (!confirm('Are you sure you want to delete this prompt?')) return;
+    if (!confirm(t('confirm.delete'))) return;
 
     try {
       await promptStorage.deletePrompt(promptId);
@@ -937,7 +932,7 @@ class PromptManager {
       await this.loadTags();
     } catch (error) {
       console.error('Error deleting prompt:', error);
-      alert('Error deleting prompt. Please try again.');
+      alert(t('alert.deleteError'));
     }
   }
 
@@ -948,7 +943,6 @@ class PromptManager {
       const wasInitiallyFavorite = prompt.favorite;
 
       const newFavoriteStatus = await promptStorage.toggleFavorite(promptId);
-      console.log('Favorite toggled:', promptId, 'New status:', newFavoriteStatus);
 
       // Reload prompts to reflect the new sorting order
       await this.loadPrompts();
@@ -956,14 +950,14 @@ class PromptManager {
       // Show a more informative notification
       let message;
       if (newFavoriteStatus) {
-        message = '★ Added to favorites (moved to top)';
+        message = '★ ' + t('notify.addedFavorite');
       } else {
-        message = '☆ Removed from favorites (repositioned by date)';
+        message = '☆ ' + t('notify.removedFavorite');
       }
       this.showNotification(message);
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      this.showNotification('Error updating favorite status', 'error');
+      this.showNotification(t('notify.favoriteError'), 'error');
     }
   }
 }

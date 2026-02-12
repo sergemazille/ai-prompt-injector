@@ -34,26 +34,20 @@ window.PromptInjector = {
     const specificSelectors = this.domainSelectors[hostname] || [];
     const allSelectors = [...specificSelectors, ...this.selectors];
 
-    console.log(`[${AI_PROMPT_INJECTOR_NS}] Searching for input field on ${hostname}`);
-    console.log(`[${AI_PROMPT_INJECTOR_NS}] Using selectors:`, allSelectors);
-
     for (const selector of allSelectors) {
       try {
         const elements = document.querySelectorAll(selector);
-        console.log(`[${AI_PROMPT_INJECTOR_NS}] Found ${elements.length} elements for selector: ${selector}`);
 
         for (const element of elements) {
           if (this.isValidTarget(element)) {
-            console.log(`[${AI_PROMPT_INJECTOR_NS}] Valid target found:`, element);
             return element;
           }
         }
       } catch (error) {
-        console.warn(`[${AI_PROMPT_INJECTOR_NS}] Error with selector ${selector}:`, error);
+        // Skip invalid selectors
       }
     }
 
-    console.warn(`[${AI_PROMPT_INJECTOR_NS}] No suitable input field found`);
     return null;
   },
 
@@ -77,8 +71,6 @@ window.PromptInjector = {
   },
 
   async insertText(text) {
-    console.log(`[${AI_PROMPT_INJECTOR_NS}] Attempting to insert text:`, text.substring(0, 100) + '...');
-
     const target = this.findTarget();
     if (!target) {
       throw new Error('No suitable input field found');
@@ -91,19 +83,17 @@ window.PromptInjector = {
       } else {
         this.insertIntoInput(target, text);
       }
-      console.log(`[${AI_PROMPT_INJECTOR_NS}] Text inserted successfully (direct)`);
       return true;
     } catch (error) {
-      console.warn(`[${AI_PROMPT_INJECTOR_NS}] Direct insertion failed:`, error);
+      // Direct insertion failed, try execCommand
     }
 
     // Tier 2: execCommand('insertText')
     try {
       this.insertViaExecCommand(target, text);
-      console.log(`[${AI_PROMPT_INJECTOR_NS}] Text inserted successfully (execCommand)`);
       return true;
     } catch (error) {
-      console.warn(`[${AI_PROMPT_INJECTOR_NS}] execCommand insertion failed:`, error);
+      // execCommand insertion failed
     }
 
     // Tier 3: throw — caller handles clipboard fallback
@@ -173,7 +163,6 @@ window.PromptInjector = {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-        console.log(`[${AI_PROMPT_INJECTOR_NS}] Text copied to clipboard`);
         return true;
       } else {
         const textArea = document.createElement('textarea');
@@ -189,12 +178,11 @@ window.PromptInjector = {
         document.body.removeChild(textArea);
 
         if (successful) {
-          console.log(`[${AI_PROMPT_INJECTOR_NS}] Text copied to clipboard (fallback method)`);
           return true;
         }
       }
     } catch (error) {
-      console.error(`[${AI_PROMPT_INJECTOR_NS}] Clipboard copy failed:`, error);
+      // Clipboard copy failed
     }
     return false;
   }
@@ -233,16 +221,32 @@ window.showNotification = function(message, type = 'info', duration = 4000) {
 // Process pending injection (set by popup.js before loading this file)
 if (window._aiPromptPending) {
   const text = window._aiPromptPending;
+  const locale = window._aiPromptLocale || 'en';
   delete window._aiPromptPending;
+  delete window._aiPromptLocale;
+
+  const _t = {
+    en: {
+      inserted: 'Prompt inserted successfully!',
+      clipboard: 'Insertion failed. Prompt copied to clipboard.',
+      failed: 'Insert failed and clipboard unavailable'
+    },
+    fr: {
+      inserted: 'Prompt inséré avec succès !',
+      clipboard: 'Échec de l\'insertion. Prompt copié dans le presse-papiers.',
+      failed: 'Échec de l\'insertion et presse-papiers indisponible'
+    }
+  };
+  const msg = _t[locale] || _t.en;
 
   window.PromptInjector.insertText(text).then(() => {
-    window.showNotification('Prompt inserted successfully!', 'success');
+    window.showNotification(msg.inserted, 'success');
   }).catch(async (error) => {
     const ok = await window.PromptInjector.copyToClipboard(text);
     if (ok) {
-      window.showNotification('Insertion failed. Prompt copied to clipboard.', 'warning', 6000);
+      window.showNotification(msg.clipboard, 'warning', 6000);
     } else {
-      window.showNotification('Insert failed and clipboard unavailable', 'error');
+      window.showNotification(msg.failed, 'error');
     }
   });
 }

@@ -1,7 +1,6 @@
 class PromptStorage {
   constructor() {
     this.storageKey = 'prompts';
-    this.selectorsKey = 'selectors';
   }
 
   generateId() {
@@ -258,37 +257,6 @@ class PromptStorage {
     throw error;
   }
 }
-
-  async getSelectors() {
-    try {
-      const result = await browser.storage.local.get(this.selectorsKey);
-      return result[this.selectorsKey] || this.getDefaultSelectors();
-    } catch (error) {
-      console.error('Error getting selectors:', error);
-      return this.getDefaultSelectors();
-    }
-  }
-
-  getDefaultSelectors() {
-    return {
-      'chat.openai.com': '#prompt-textarea',
-      'gemini.google.com': '[contenteditable="true"]',
-      'claude.ai': '[contenteditable="true"]',
-      'chat.mistral.ai': 'textarea',
-      'grok.x.ai': 'textarea',
-      'www.perplexity.ai': 'textarea',
-      'chat.deepseek.com': 'textarea'
-    };
-  }
-
-  async saveSelectors(selectors) {
-    try {
-      await browser.storage.local.set({ [this.selectorsKey]: selectors });
-    } catch (error) {
-      console.error('Error saving selectors:', error);
-      throw error;
-    }
-  }
 
   async createBackup(reason = 'manual') {
     try {

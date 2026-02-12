@@ -8,6 +8,9 @@ FILENAME="dist/ai-prompt-injector-v${VERSION}-firefox.zip"
 
 echo "Building Firefox addon package v${VERSION}..."
 
+# Ensure dist directory exists
+mkdir -p dist
+
 # Remove old build if exists
 rm -f "$FILENAME"
 
@@ -17,7 +20,10 @@ echo "Using temp directory: $TEMP_DIR"
 
 # Copy files preserving structure
 cp manifest.json "$TEMP_DIR/"
-cp *.js "$TEMP_DIR/"
+for f in *.js; do
+  [ "$f" = "vitest.config.js" ] && continue
+  cp "$f" "$TEMP_DIR/"
+done
 cp *.html "$TEMP_DIR/"
 cp *.css "$TEMP_DIR/"
 mkdir -p "$TEMP_DIR/icons"
