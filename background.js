@@ -25,14 +25,12 @@ async function createAutoBackup(reason) {
     while (backups.length > 3) backups.pop();
 
     await browser.storage.local.set({ backups });
-    console.log(`[ai_prompt_injector] Backup created (${reason}): ${prompts.length} prompts`);
   } catch (error) {
     console.error('[ai_prompt_injector] Backup failed:', error);
   }
 }
 
 browser.runtime.onInstalled.addListener((details) => {
-  console.log('AI Prompt Injector extension installed');
   if (details.reason === 'update') {
     createAutoBackup('update');
   }

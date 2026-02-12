@@ -12,11 +12,12 @@
         <img src="icons/icon48.png" alt="AI Prompt Injector Icon" class="header-icon">
         <h1>AI Prompt Injector</h1>
       </div>
+      <button id="theme-toggle" class="theme-toggle" data-i18n-aria-label="aria.toggleTheme" aria-label="Toggle theme">🖥️</button>
       <div class="header-actions">
-        <button id="import-btn" class="btn" aria-label="Import prompts">Import</button>
-        <button id="export-btn" class="btn" aria-label="Export prompts">Export</button>
-        <button id="backups-btn" class="btn" aria-label="Manage backups">Backups</button>
-        <button id="new-prompt-btn" class="btn btn--primary" aria-label="Create new prompt">New Prompt</button>
+        <button id="import-btn" class="btn" data-i18n="btn.import" data-i18n-aria-label="aria.importPrompts" aria-label="Import prompts">Import</button>
+        <button id="export-btn" class="btn" data-i18n="btn.export" data-i18n-aria-label="aria.exportPrompts" aria-label="Export prompts">Export</button>
+        <button id="backups-btn" class="btn" data-i18n="btn.backups" data-i18n-aria-label="aria.manageBackups" aria-label="Manage backups">Backups</button>
+        <button id="new-prompt-btn" class="btn btn--primary" data-i18n="btn.newPrompt" data-i18n-aria-label="aria.createNewPrompt" aria-label="Create new prompt">New Prompt</button>
       </div>
     </header>
 
@@ -25,73 +26,73 @@
       <div class="drop-zone-content">
         <div class="import-methods">
           <div class="import-method">
-            <h4>Method 1: Drag and drop</h4>
-            <p>Drag your JSON file here</p>
+            <h4 data-i18n="import.method1.title">Method 1: Drag and drop</h4>
+            <p data-i18n="import.method1.desc">Drag your JSON file here</p>
           </div>
-          
+
           <div class="import-method">
-            <h4>Method 2: Browse</h4>
-            <p><button id="browse-btn" class="btn btn--primary">Select a file</button></p>
+            <h4 data-i18n="import.method2.title">Method 2: Browse</h4>
+            <p><button id="browse-btn" class="btn btn--primary" data-i18n="import.method2.selectFile">Select a file</button></p>
           </div>
-          
+
           <div class="import-method">
-            <h4>Method 3: Paste JSON</h4>
-            <textarea id="paste-json" placeholder="Paste your JSON here (Ctrl+V)" rows="4"></textarea>
+            <h4 data-i18n="import.method3.title">Method 3: Paste JSON</h4>
+            <textarea id="paste-json" data-i18n-placeholder="import.method3.placeholder" placeholder="Paste your JSON here (Ctrl+V)" rows="4"></textarea>
             <div class="paste-actions">
-              <button id="import-from-paste" class="btn btn--success">Import</button>
+              <button id="import-from-paste" class="btn btn--success" data-i18n="import.method3.btn">Import</button>
             </div>
-            <small class="paste-help">💡 Tip: You can paste directly with Ctrl+V in the text area</small>
+            <small class="paste-help" data-i18n="import.method3.tip">💡 Tip: You can paste directly with Ctrl+V in the text area</small>
           </div>
         </div>
-        <small>Only .json files are accepted</small>
+        <small data-i18n="import.acceptedFormats">Only .json files are accepted</small>
       </div>
     </div>
 
     <!-- Backup Panel -->
     <div id="backup-panel" class="backup-panel hidden">
-      <div class="backup-info">Automatic backups on browser startup and before each import. Export regularly in case of uninstall.</div>
+      <div class="backup-info" data-i18n="backup.info">Automatic backups on browser startup and before each import. Export regularly in case of uninstall.</div>
       <div id="backup-list" class="backup-list">
         <!-- Backups will be dynamically inserted here -->
       </div>
-      <div id="backup-empty" class="backup-empty hidden">No backups yet.</div>
+      <div id="backup-empty" class="backup-empty hidden" data-i18n="backup.empty">No backups yet.</div>
     </div>
 
     <!-- Filter Section -->
     <div class="filter-section">
       <div class="search-container">
-        <input type="search" id="search-input" placeholder="Search prompts..." />
+        <input type="search" id="search-input" data-i18n-placeholder="search.placeholder" placeholder="Search prompts..." />
         <div class="search-icon" aria-hidden="true">🔍</div>
       </div>
-      <select id="tag-filter" aria-label="Filter prompts by tag">
-        <option value="">All tags</option>
+      <select id="tag-filter" data-i18n-aria-label="aria.filterByTag" aria-label="Filter prompts by tag">
+        <option value="" data-i18n="filter.allTags">All tags</option>
       </select>
     </div>
 
     <!-- Prompt Form -->
     <div id="prompt-form" class="form-section hidden">
-      <h2 id="form-title">New Prompt</h2>
+      <h2 id="form-title" data-i18n="form.newPrompt">New Prompt</h2>
       <form id="prompt-form-element">
         <div class="form-group">
-          <label for="prompt-title">Title:</label>
+          <label for="prompt-title" data-i18n="form.titleLabel">Title:</label>
           <input type="text" id="prompt-title" required>
         </div>
-        
+
         <div class="form-group">
-          <label for="prompt-content">Content:</label>
+          <label for="prompt-content" data-i18n="form.contentLabel">Content:</label>
           <textarea id="prompt-content" rows="6" required></textarea>
         </div>
-        
+
         <div class="form-group">
-          <label for="prompt-tags">Tags (comma-separated):</label>
+          <label for="prompt-tags" data-i18n="form.tagsLabel">Tags (comma-separated):</label>
           <div class="tag-input-wrapper">
-            <input type="text" id="prompt-tags" placeholder="tag1, tag2, tag3" autocomplete="off">
-            <div id="tag-suggestions" class="tag-suggestions hidden" role="listbox" aria-label="Tag suggestions"></div>
+            <input type="text" id="prompt-tags" data-i18n-placeholder="form.tagsPlaceholder" placeholder="tag1, tag2, tag3" autocomplete="off">
+            <div id="tag-suggestions" class="tag-suggestions hidden" role="listbox" data-i18n-aria-label="aria.tagSuggestions" aria-label="Tag suggestions"></div>
           </div>
         </div>
-        
+
         <div class="form-actions">
-          <button type="submit" id="save-btn" class="btn btn--primary">Save</button>
-          <button type="button" id="cancel-btn" class="btn">Cancel</button>
+          <button type="submit" id="save-btn" class="btn btn--primary" data-i18n="btn.save">Save</button>
+          <button type="button" id="cancel-btn" class="btn" data-i18n="btn.cancel">Cancel</button>
         </div>
       </form>
     </div>
@@ -103,7 +104,7 @@
 
     <!-- Empty State -->
     <div id="empty-state" class="empty-state hidden">
-      <p>No prompts found. Create your first prompt!</p>
+      <p data-i18n="empty.message">No prompts found. Create your first prompt!</p>
     </div>
   </div>
 
@@ -115,7 +116,7 @@
     <span id="notification-text"></span>
   </div>
 
-  <script src="browser-polyfill.js"></script>
+  <script src="i18n.js"></script>
   <script src="storage.js"></script>
   <script src="popup.js"></script>
 </body>
